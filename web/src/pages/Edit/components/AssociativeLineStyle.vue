@@ -144,7 +144,7 @@
         </div>
       </div>
       <!-- 关联线文字 -->
-      <div class="title noTop">{{ $t('baseStyle.associativeLineText') }}</div>
+      <div class="title">{{ $t('baseStyle.associativeLineText') }}</div>
       <div class="row">
         <div class="rowItem">
           <span class="name">{{ $t('baseStyle.fontFamily') }}</span>
@@ -248,7 +248,8 @@ export default {
       activeLineToNode: null,
       style: {
         ...defaultStyle
-      }
+      },
+      timer: null
     }
   },
   computed: {
@@ -285,6 +286,10 @@ export default {
     ...mapMutations(['setActiveSidebar']),
 
     onAssociativeLineClick(a, b, node, toNode) {
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      }
       this.activeLineNode = node
       this.activeLineToNode = toNode
       const styleConfig = this.mindMap.associativeLine.getStyleConfig(
@@ -294,18 +299,26 @@ export default {
       Object.keys(this.style).forEach(item => {
         this.style[item] = styleConfig[item]
       })
-      this.setActiveSidebar('associativeLineStyle')
+      if (this.activeSidebar === 'associativeLineStyle') {
+        //
+      } else {
+        if (this.activeSidebar) {
+          this.setActiveSidebar('')
+        }
+      }
     },
 
     associativeLineDeactivate() {
-      if (this.activeSidebar === 'associativeLineStyle') {
-        this.setActiveSidebar(null)
-      }
-      this.activeLineNode = null
-      this.activeLineToNode = null
-      this.style = {
-        ...defaultStyle
-      }
+      this.timer = setTimeout(() => {
+        if (this.activeSidebar === 'associativeLineStyle') {
+          this.setActiveSidebar(null)
+        }
+        this.activeLineNode = null
+        this.activeLineToNode = null
+        this.style = {
+          ...defaultStyle
+        }
+      }, 10)
     },
 
     update(prop, value) {

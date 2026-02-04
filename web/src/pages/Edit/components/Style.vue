@@ -526,7 +526,7 @@ import {
   linearGradientDirList,
   alignList
 } from '@/config'
-import { mapState } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 
 // 节点样式设置
 export default {
@@ -639,10 +639,21 @@ export default {
     this.$bus.$off('node_active', this.onNodeActive)
   },
   methods: {
+    ...mapMutations(['setActiveSidebar']),
+
     // 监听节点激活事件
     onNodeActive(...args) {
       this.$nextTick(() => {
         this.activeNodes = [...args[1]]
+        if (this.activeNodes.length > 0) {
+          if (this.activeSidebar && this.activeSidebar !== 'nodeStyle') {
+            this.setActiveSidebar('')
+          }
+        } else {
+          if (this.activeSidebar === 'nodeStyle') {
+            this.setActiveSidebar('')
+          }
+        }
         this.initNodeStyle()
       })
     },

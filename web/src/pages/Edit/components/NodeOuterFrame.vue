@@ -460,7 +460,14 @@ export default {
       const [pl, pt] = this.styleConfig.textFillPadding
       this.paddingStyle.paddingX = pl
       this.paddingStyle.paddingY = pt
-      this.setActiveSidebar('nodeOuterFrameStyle')
+
+      if (this.activeSidebar === 'nodeOuterFrameStyle') {
+        //
+      } else {
+        if (this.activeSidebar) {
+          this.setActiveSidebar('')
+        }
+      }
     },
 
     updateOuterFrame(key, val) {
