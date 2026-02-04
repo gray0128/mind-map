@@ -328,8 +328,47 @@ export default {
     },
 
     // 手动保存
-    manualSave() {
-      storeData(this.mindMap.getData(true))
+    async manualSave() {
+      const data = this.mindMap.getData(true)
+      // 生成缩略图
+      try {
+         const base64 = await this.mindMap.export('png', false, 'thumbnail')
+         if (base64) {
+            const thumbnail = await new Promise((resolve) => {
+               const img = new Image()
+               img.src = base64
+               img.onload = () => {
+                  const canvas = document.createElement('canvas')
+                  const targetWidth = 300
+                  const targetHeight = 200
+                  canvas.width = targetWidth
+                  canvas.height = targetHeight
+                  const ctx = canvas.getContext('2d')
+                  
+                  // 白色背景
+                  ctx.fillStyle = '#fff'
+                  ctx.fillRect(0, 0, targetWidth, targetHeight)
+                  
+                  // 保持比例缩放
+                  const scale = Math.min(targetWidth / img.width, targetHeight / img.height)
+                  const w = img.width * scale
+                  const h = img.height * scale
+                  const x = (targetWidth - w) / 2
+                  const y = (targetHeight - h) / 2
+                  
+                  ctx.drawImage(img, x, y, w, h)
+                  resolve(canvas.toDataURL('image/png'))
+               }
+               img.onerror = () => resolve(null)
+            })
+            if (thumbnail) {
+               data.thumbnail = thumbnail
+            }
+         }
+      } catch (e) {
+         console.error('Thumbnail generation failed', e)
+      }
+      storeData(data)
     },
 
     // 初始化
