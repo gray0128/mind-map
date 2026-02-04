@@ -1,0 +1,22 @@
+name = "mindmap-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+FRONTEND_URL = "http://localhost:5173"
+
+# 开发环境使用本地 D1
+[[d1_databases]]
+binding = "DB"
+database_name = "mindmap-db"
+database_id = "local"
+
+# R2 存储
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "mindmap-files"
+
+# 生产环境变量需要通过 wrangler secret 配置：
+# wrangler secret put GITHUB_CLIENT_ID
+# wrangler secret put GITHUB_CLIENT_SECRET
+# wrangler secret put JWT_SECRET
