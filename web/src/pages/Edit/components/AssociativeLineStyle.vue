@@ -296,15 +296,17 @@ export default {
         node,
         toNode
       )
-      Object.keys(this.style).forEach(item => {
-        this.style[item] = styleConfig[item]
-      })
-      if (this.activeSidebar === 'associativeLineStyle') {
-        //
-      } else {
-        if (this.activeSidebar) {
-          this.setActiveSidebar('')
-        }
+      this.style.associativeLineColor = styleConfig.associativeLineColor
+      this.style.associativeLineWidth = styleConfig.associativeLineWidth
+      this.style.associativeLineActiveWidth = styleConfig.associativeLineActiveWidth
+      this.style.associativeLineDasharray = styleConfig.associativeLineDasharray
+      this.style.associativeLineActiveColor = styleConfig.associativeLineActiveColor
+      this.style.associativeLineTextFontSize = styleConfig.associativeLineTextFontSize
+      this.style.associativeLineTextColor = styleConfig.associativeLineTextColor
+      this.style.associativeLineTextFontFamily = styleConfig.associativeLineTextFontFamily
+
+      if (this.activeSidebar !== 'associativeLineStyle') {
+        this.setActiveSidebar('associativeLineStyle')
       }
     },
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-container">
+  <div class="editor-container" v-loading="loading" :element-loading-text="loadingText">
     <!-- 文件操作栏 -->
     <el-header class="file-bar" height="40px">
       <div class="file-bar-left">
@@ -93,20 +93,15 @@
     <NodeOuterFrame />
     <RichTextToolbar />
     
-    <!-- 加载遮罩 -->
-    <el-overlay :show="loading" :lock-scroll="true" class="loading-overlay">
-      <template #overlay>
-        <div class="loading-content">
-          <el-spinner type="dots" :size="40"></el-spinner>
-          <div style="margin-top: 20px;">{{ loadingText }}</div>
-        </div>
-      </template>
-    </el-overlay>
+    <!-- 右侧边栏触发器 -->
+    <SidebarTrigger />
+    
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed, nextTick, shallowRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import MindMap from 'simple-mind-map'
@@ -136,6 +131,7 @@ import BaseStyle from '@/components/editor/BaseStyle.vue'
 import ShortcutKey from '@/components/editor/ShortcutKey.vue'
 import NodeOuterFrame from '@/components/editor/NodeOuterFrame.vue'
 import RichTextToolbar from '@/components/editor/RichTextToolbar.vue'
+import SidebarTrigger from '@/components/editor/SidebarTrigger.vue'
 import MiniMap from 'simple-mind-map/src/plugins/MiniMap.js'
 import Watermark from 'simple-mind-map/src/plugins/Watermark.js'
 import KeyboardNavigation from 'simple-mind-map/src/plugins/KeyboardNavigation.js'
@@ -209,7 +205,7 @@ const router = useRouter()
 const route = useRoute()
 const mindMapStore = useMindMapStore()
 const mindMapContainer = ref(null)
-const mindMap = ref(null)
+const mindMap = shallowRef(null)
 const fileName = ref('')
 const originalFileName = ref('') // 用于取消重命名
 const saveStatus = ref('')
@@ -290,6 +286,9 @@ async function initEditor() {
   mindMap.value.on('node_active', onNodeActive)
   mindMap.value.on('selection_change', onSelectionChange)
   mindMap.value.on('back_forward', onBackForward)
+  mindMap.value.on('draw_click', () => {
+    mindMapStore.setActiveSidebar('')
+  })
   
   // 注册到 store
   mindMapStore.setMindMap(mindMap.value)
@@ -490,7 +489,7 @@ function cancelFileNameEdit() {
 
 <style scoped>
 .editor-container {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -540,9 +539,10 @@ function cancelFileNameEdit() {
 /* 思维导图容器 */
 .mind-map-container-wrapper {
   flex: 1;
-  padding: 0;
+  padding: 0 !important;
   margin: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .mind-map-container {
@@ -552,22 +552,7 @@ function cancelFileNameEdit() {
   overflow: hidden;
 }
 
-/* 加载遮罩 */
-.loading-overlay {
-  z-index: 1000;
-}
 
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 200px;
-  height: 200px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
 
 /* 响应式设计 */
 @media (max-width: 768px) {
@@ -591,5 +576,17 @@ function cancelFileNameEdit() {
   .file-name-input {
     width: 150px;
   }
+}
+</style>
+
+<!-- 编辑器页面的全局样式，确保没有滚动条泄漏 -->
+<style>
+html:has(.editor-container),
+html:has(.editor-container) body {
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 </style>

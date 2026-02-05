@@ -1,7 +1,5 @@
 <template>
-  <div id="app-debug" style="position:fixed;top:0;left:0;z-index:9999;background:yellow;font-size:12px;opacity:0.8;">
-    App Mounted
-  </div>
+
   <router-view />
 </template>
 

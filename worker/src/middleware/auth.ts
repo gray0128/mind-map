@@ -10,13 +10,17 @@ declare module 'hono' {
 }
 
 export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) {
+    let token = ''
     const authHeader = c.req.header('Authorization')
+    const queryToken = c.req.query('token')
 
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice(7)
+    } else if (queryToken) {
+        token = queryToken
+    } else {
         return c.json({ error: 'Unauthorized' }, 401)
     }
-
-    const token = authHeader.slice(7)
 
     try {
         const secret = new TextEncoder().encode(c.env.JWT_SECRET)

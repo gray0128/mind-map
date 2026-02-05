@@ -3,7 +3,7 @@
     <header class="header">
       <h1 class="header-title">我的思维导图</h1>
       <div class="header-actions">
-        <el-avatar :src="user?.avatar_url" :alt="user?.username" size="medium" v-if="user"></el-avatar>
+        <el-avatar :src="user?.avatar_url" :alt="user?.username" size="default" v-if="user"></el-avatar>
         <el-button type="primary" plain @click="handleLogout" style="margin-left: 10px;">退出</el-button>
       </div>
     </header>
@@ -31,9 +31,11 @@
           </el-select>
           
           <el-upload 
+            class="upload-wrapper"
             action="" 
             accept=".smm,.json" 
             :auto-upload="false" 
+            :show-file-list="false"
             :on-change="handleUpload"
           >
             <el-button type="primary" plain>
@@ -44,48 +46,50 @@
       </el-card>
 
       <!-- 文件网格 -->
-      <el-loading v-if="loading" text="加载中..." :fullscreen="false" background="rgba(255, 255, 255, 0.8)"></el-loading>
-      
-      <div class="file-grid" v-else>
-        <!-- 新建卡片 -->
-        <el-card shadow="hover" class="file-card create-card" @click="createNewFile">
-          <div class="create-content">
-            <div class="create-icon">+</div>
-            <el-text>创建新思维导图</el-text>
-          </div>
-        </el-card>
-
-        <!-- 文件卡片 -->
-        <el-card shadow="hover" class="file-card" v-for="file in filteredFiles" :key="file.id" @click="openFile(file.id)">
-          <div class="card-content">
-            <div class="card-thumbnail">
-              <el-image 
-                :src="file.thumbnail_url || '/placeholder.svg'" 
-                :alt="file.name"
-                fit="contain"
-                style="width: 100%; height: 140px;"
-              ></el-image>
+      <div v-loading="loading" class="file-list-content" style="min-height: 200px">
+        <div class="file-grid" v-if="!loading">
+          <!-- 新建卡片 -->
+          <el-card shadow="hover" class="file-card create-card" @click="createNewFile">
+            <div class="create-content">
+              <div class="create-icon">+</div>
+              <el-text>创建新思维导图</el-text>
             </div>
-            <div class="card-info">
-              <el-text class="card-title">{{ file.name }}</el-text>
-              <el-text type="secondary" class="card-meta">{{ formatDate(file.updated_at) }}</el-text>
+          </el-card>
+  
+          <!-- 文件卡片 -->
+          <el-card shadow="hover" class="file-card" v-for="file in filteredFiles" :key="file.id" @click="openFile(file.id)">
+            <div class="card-content">
+              <div class="card-thumbnail">
+                <el-image 
+                  :src="file.thumbnail_url ? `${file.thumbnail_url}?token=${userStore.token}` : '/placeholder.svg'" 
+                  :alt="file.name"
+                  fit="contain"
+                  style="width: 100%; height: 140px;"
+                ></el-image>
+              </div>
+              <div class="card-info">
+                <el-text class="card-title">{{ file.name }}</el-text>
+                    <el-text type="info" size="small">
+                      {{ formatDate(file.updated_at) }}
+                    </el-text>
+              </div>
+              <div class="card-actions" @click.stop>
+                <el-button link @click="renameFile(file)" title="重命名">
+                  <el-icon><EditPen /></el-icon>
+                </el-button>
+                <el-button link @click="toggleShare(file)" :title="file.is_shared ? '关闭分享' : '开启分享'">
+                  <el-icon>{{ file.is_shared ? 'Link' : 'Lock' }}</el-icon>
+                </el-button>
+                <el-button link v-if="file.is_shared" @click="copyShareLink(file)" title="复制链接">
+                  <el-icon><DocumentCopy /></el-icon>
+                </el-button>
+                <el-button link type="danger" @click="deleteFile(file)" title="删除">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </div>
             </div>
-            <div class="card-actions" @click.stop>
-              <el-button type="text" @click="renameFile(file)" title="重命名">
-                <el-icon><EditPen /></el-icon>
-              </el-button>
-              <el-button type="text" @click="toggleShare(file)" :title="file.is_shared ? '关闭分享' : '开启分享'">
-                <el-icon>{{ file.is_shared ? 'Link' : 'Lock' }}</el-icon>
-              </el-button>
-              <el-button type="text" v-if="file.is_shared" @click="copyShareLink(file)" title="复制链接">
-                <el-icon><DocumentCopy /></el-icon>
-              </el-button>
-              <el-button type="text" danger @click="deleteFile(file)" title="删除">
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </div>
-          </div>
-        </el-card>
+          </el-card>
+        </div>
       </div>
 
       <!-- 空状态 -->
@@ -309,6 +313,11 @@ function formatDate(dateStr) {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.upload-wrapper {
+  display: flex;
+  align-items: center;
 }
 
 /* 文件网格 */

@@ -1,151 +1,125 @@
 <template>
-  <div class="toolbar-container">
+  <div class="toolbarContainer">
     <div class="toolbar">
-      <div class="toolbar-block">
-        <!-- 撤销 -->
-        <el-tooltip content="撤销 (Ctrl+Z)" placement="bottom">
-          <el-button 
-            :icon="RefreshLeft" 
-            :disabled="readonly || backEnd"
-            @click="execCommand('BACK')"
-          >撤销</el-button>
-        </el-tooltip>
-        
-        <!-- 重做 -->
-        <el-tooltip content="重做 (Ctrl+Y)" placement="bottom">
-          <el-button 
-            :icon="RefreshRight" 
-            :disabled="readonly || forwardEnd"
-            @click="execCommand('FORWARD')"
-          >重做</el-button>
-        </el-tooltip>
-        
-        <el-divider direction="vertical" />
-        
-        <!-- 格式刷 -->
-        <el-tooltip content="格式刷" placement="bottom">
-          <el-button 
-            :icon="CopyDocument" 
-            :type="isInPainter ? 'primary' : ''"
-            :disabled="activeNodes.length <= 0 || hasGeneralization"
-            @click="startPainter"
-          >格式刷</el-button>
-        </el-tooltip>
-        
-        <el-divider direction="vertical" />
-        
-        <!-- 添加子节点 -->
-        <el-tooltip content="添加子节点 (Tab)" placement="bottom">
-          <el-button 
-            :icon="CirclePlus" 
-            :disabled="activeNodes.length <= 0 || hasGeneralization"
-            @click="execCommand('INSERT_CHILD_NODE')"
-          >子节点</el-button>
-        </el-tooltip>
-        
-        <!-- 添加同级节点 -->
-        <el-tooltip content="添加同级节点 (Enter)" placement="bottom">
-          <el-button 
-            :icon="Plus" 
-            :disabled="activeNodes.length <= 0 || hasRoot || hasGeneralization"
-            @click="execCommand('INSERT_NODE')"
-          >同级节点</el-button>
-        </el-tooltip>
-        
-        <!-- 删除节点 -->
-        <el-tooltip content="删除节点 (Delete)" placement="bottom">
-          <el-button 
-            :icon="Delete" 
-            type="danger"
-            plain
-            :disabled="activeNodes.length <= 0"
-            @click="execCommand('REMOVE_NODE')"
-          >删除</el-button>
-        </el-tooltip>
+      <!-- 撤销/重做 -->
+      <div class="toolbarBtn" :class="{ disabled: readonly || backEnd }" @click="execCommand('BACK')">
+        <div class="icon">
+          <span class="iconfont iconhoutui-shi"></span>
+        </div>
+        <span class="text">撤销</span>
       </div>
-      
-      <el-divider direction="vertical" />
-      
-      <el-divider direction="vertical" />
-      
-      <!-- 插入 -->
-      <div class="toolbar-block">
-        <el-tooltip content="插入图片" placement="bottom">
-          <el-button :icon="Picture" :disabled="activeNodes.length <= 0" @click="showNodeImage">图片</el-button>
-        </el-tooltip>
-        <el-tooltip content="插入关联线" placement="bottom">
-          <el-button :icon="Rank" :disabled="activeNodes.length <= 0 || hasGeneralization" @click="createAssociativeLine">关联线</el-button>
-        </el-tooltip>
-        <el-tooltip content="插入图标" placement="bottom">
-          <el-button :icon="Star" :disabled="activeNodes.length <= 0" @click="openSidebar('nodeIconSidebar')">图标</el-button>
-        </el-tooltip>
-        <el-tooltip content="插入超链接" placement="bottom">
-          <el-button :icon="Link" :disabled="activeNodes.length <= 0" @click="showNodeLink">链接</el-button>
-        </el-tooltip>
-        <el-tooltip content="插入备注" placement="bottom">
-          <el-button :icon="Notebook" :disabled="activeNodes.length <= 0" @click="showNodeNote">备注</el-button>
-        </el-tooltip>
-        <el-tooltip content="插入标签" placement="bottom">
-          <el-button :icon="CollectionTag" :disabled="activeNodes.length <= 0" @click="showNodeTag">标签</el-button>
-        </el-tooltip>
+      <div class="toolbarBtn" :class="{ disabled: readonly || forwardEnd }" @click="execCommand('FORWARD')">
+        <div class="icon">
+          <span class="iconfont iconqianjin1"></span>
+        </div>
+        <span class="text">重做</span>
       </div>
-      
-      <el-divider direction="vertical" />
-      
+
+      <div class="divider"></div>
+
+      <!-- 格式刷 -->
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasGeneralization, active: isInPainter }" @click="startPainter">
+        <div class="icon">
+          <span class="iconfont icongeshishua"></span>
+        </div>
+        <span class="text">格式刷</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 节点操作 -->
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasGeneralization }" @click="execCommand('INSERT_CHILD_NODE')">
+        <div class="icon">
+          <span class="iconfont icontianjiazijiedian"></span>
+        </div>
+        <span class="text">子节点</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasRoot || hasGeneralization }" @click="execCommand('INSERT_NODE')">
+        <div class="icon">
+          <span class="iconfont iconjiedian"></span>
+        </div>
+        <span class="text">同级节点</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="execCommand('REMOVE_NODE')">
+        <div class="icon danger">
+          <span class="iconfont iconshanchu"></span>
+        </div>
+        <span class="text">删除</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 插入操作 -->
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="showNodeImage">
+        <div class="icon">
+          <span class="iconfont iconimage"></span>
+        </div>
+        <span class="text">图片</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasGeneralization }" @click="createAssociativeLine">
+        <div class="icon">
+          <span class="iconfont iconlianjiexian"></span>
+        </div>
+        <span class="text">关联线</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="openSidebar('nodeIconSidebar')">
+        <div class="icon">
+          <span class="iconfont iconxiaolian"></span>
+        </div>
+        <span class="text">图标</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="showNodeLink">
+        <div class="icon">
+          <span class="iconfont iconchaolianjie"></span>
+        </div>
+        <span class="text">链接</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="showNodeNote">
+        <div class="icon">
+          <span class="iconfont iconflow-Mark"></span>
+        </div>
+        <span class="text">备注</span>
+      </div>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="showNodeTag">
+        <div class="icon">
+          <span class="iconfont iconbiaoqian"></span>
+        </div>
+        <span class="text">标签</span>
+      </div>
+
+      <div class="divider"></div>
+
       <!-- 功能区 -->
-      <div class="toolbar-block">
-        <!-- 概括 -->
-        <el-tooltip content="添加概括" placement="bottom">
-          <el-button 
-            :disabled="activeNodes.length <= 0 || hasRoot || hasGeneralization"
-            @click="execCommand('ADD_GENERALIZATION')"
-          >概括</el-button>
-        </el-tooltip>
-        
-        <!-- 外框 -->
-        <el-tooltip content="添加外框" placement="bottom">
-          <el-button 
-            :disabled="activeNodes.length <= 0 || hasGeneralization"
-            @click="execCommand('ADD_OUTER_FRAME')"
-          >外框</el-button>
-        </el-tooltip>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasRoot || hasGeneralization }" @click="execCommand('ADD_GENERALIZATION')">
+        <div class="icon">
+          <span class="iconfont icongaikuozonglan"></span>
+        </div>
+        <span class="text">概括</span>
       </div>
-      
-      <el-divider direction="vertical" />
-      
-      <!-- 外观 -->
-      <div class="toolbar-block">
-        <el-tooltip content="主题" placement="bottom">
-          <el-button :icon="MagicStick" @click="openSidebar('theme')">主题</el-button>
-        </el-tooltip>
-        <el-tooltip content="节点样式" placement="bottom">
-          <el-button :icon="Brush" @click="handleOpenStyle">样式</el-button>
-        </el-tooltip>
-        <el-tooltip content="基础样式" placement="bottom">
-          <el-button :icon="EditPen" @click="openSidebar('baseStyle')">基础</el-button>
-        </el-tooltip>
-        <el-tooltip content="结构" placement="bottom">
-          <el-button :icon="Connection" @click="openSidebar('structure')">结构</el-button>
-        </el-tooltip>
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 || hasGeneralization }" @click="execCommand('ADD_OUTER_FRAME')">
+        <div class="icon">
+          <span class="iconfont iconwaikuang"></span>
+        </div>
+        <span class="text">外框</span>
       </div>
-      
-      <el-divider direction="vertical" />
-      
-      <!-- 导出导入 -->
-      <div class="toolbar-block">
-        <el-button :icon="Upload" @click="showImport">导入</el-button>
-        <el-button :icon="Download" @click="showExport">导出</el-button>
+
+      <div class="divider"></div>
+
+      <!-- 导入导出 -->
+      <div class="toolbarBtn" @click="showImport">
+        <div class="icon">
+          <span class="iconfont icondaoru"></span>
+        </div>
+        <span class="text">导入</span>
       </div>
-      
-      <!-- 右侧区域 -->
-      <div class="toolbar-right">
-        <Scale />
-        <el-tooltip content="全屏" placement="bottom">
-          <el-button :icon="FullScreen" circle @click="toggleFullScreen" />
-        </el-tooltip>
+      <div class="toolbarBtn" @click="showExport">
+        <div class="icon">
+          <span class="iconfont iconexport"></span>
+        </div>
+        <span class="text">导出</span>
       </div>
     </div>
-    
+
     <!-- 导出对话框 -->
     <Export ref="exportRef" />
     
@@ -155,16 +129,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, shallowRef } from 'vue'
 import { useMindMapStore } from '@/store/mindmap'
 import bus from '@/utils/bus'
-import { 
-  RefreshLeft, RefreshRight, CirclePlus, Plus, Delete, 
-  Download, Upload, FullScreen, MagicStick, Brush, Connection, EditPen,
-  Picture, Link, Star, Notebook, CollectionTag, Rank, CopyDocument
-} from '@element-plus/icons-vue'
-import { fullScreen, exitFullScreen, isFullScreen } from '@/utils'
-import Scale from './Scale.vue'
 import Export from './Export.vue'
 import Import from './Import.vue'
 
@@ -173,7 +140,7 @@ const exportRef = ref(null)
 const importRef = ref(null)
 
 // 状态
-const activeNodes = ref([])
+const activeNodes = shallowRef([])
 const activeOuterFrame = ref(false)
 const activeAssociativeLine = ref(false)
 const backEnd = ref(true)
@@ -209,17 +176,6 @@ const onAssociativeLineDeactivate = () => {
   activeAssociativeLine.value = false
 }
 
-// 打开样式侧边栏（根据当前选中元素）
-const handleOpenStyle = () => {
-  if (activeOuterFrame.value) {
-    openSidebar('nodeOuterFrameStyle')
-  } else if (activeAssociativeLine.value) {
-    openSidebar('associativeLineStyle')
-  } else {
-    openSidebar('style')
-  }
-}
-
 // 计算属性
 const hasRoot = computed(() => {
   return activeNodes.value.findIndex(node => node.isRoot) !== -1
@@ -231,6 +187,7 @@ const hasGeneralization = computed(() => {
 
 // 执行命令
 const execCommand = (command, ...args) => {
+  if (readonly.value) return
   const mindMap = mindMapStore.getMindMap()
   if (mindMap) {
     mindMap.execCommand(command, ...args)
@@ -273,17 +230,6 @@ const onPainterStart = () => {
 
 const onPainterEnd = () => {
   isInPainter.value = false
-}
-
-// 切换全屏
-const toggleFullScreen = () => {
-  if (isFullScreen()) {
-    exitFullScreen()
-    mindMapStore.setFullscreen(false)
-  } else {
-    fullScreen(document.documentElement)
-    mindMapStore.setFullscreen(true)
-  }
 }
 
 // 打开侧边栏
@@ -347,34 +293,83 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.toolbar-container {
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
-  padding: 8px 16px;
+.toolbarContainer {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
+  padding: 8px 20px;
+  z-index: 100;
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.toolbar-block {
-  display: flex;
-  align-items: center;
   gap: 4px;
 }
 
-.toolbar-right {
-  margin-left: auto;
+.toolbarBtn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 50px;
 }
 
-:deep(.el-divider--vertical) {
-  height: 24px;
+.toolbarBtn:hover:not(.disabled) {
+  background-color: #f5f7fa;
+}
+
+.toolbarBtn.active {
+  background-color: #ecf5ff;
+}
+
+.toolbarBtn.active .icon {
+  border-color: #409eff;
+  color: #409eff;
+}
+
+.toolbarBtn.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toolbarBtn .icon {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #e9e9e9;
+  font-size: 16px;
+  color: #333;
+}
+
+.toolbarBtn .icon.danger {
+  color: #f56c6c;
+  border-color: #fbc4c4;
+}
+
+.toolbarBtn .text {
+  font-size: 12px;
+  margin-top: 3px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 40px;
+  background-color: #e4e7ed;
   margin: 0 8px;
 }
 </style>

@@ -4,6 +4,7 @@
     title="导出"
     width="600px"
     :close-on-click-modal="false"
+    append-to-body
   >
     <div class="export-container">
       <!-- 导出类型选择 -->
@@ -117,18 +118,23 @@ const confirm = async () => {
   try {
     let result
     const type = exportType.value
+    // 自动添加后缀
+    const name = fileName.value + '.' + type
     
     if (type === 'svg') {
-      result = await mindMap.export(type, true, fileName.value, `* { margin: 0; padding: 0; box-sizing: border-box; }`)
+      result = await mindMap.export(type, false, fileName.value, `* { margin: 0; padding: 0; box-sizing: border-box; }`)
     } else if (['json', 'smm'].includes(type)) {
-      result = await mindMap.export(type, true, fileName.value, withConfig.value)
+      result = await mindMap.export(type, false, fileName.value, withConfig.value)
     } else if (type === 'png') {
-      result = await mindMap.export(type, true, fileName.value, isTransparent.value)
+      result = await mindMap.export(type, false, fileName.value, isTransparent.value)
     } else if (type === 'pdf') {
-      result = await mindMap.export(type, true, fileName.value, isTransparent.value)
+      result = await mindMap.export(type, false, fileName.value, isTransparent.value)
     } else {
-      result = await mindMap.export(type, true, fileName.value)
+      result = await mindMap.export(type, false, fileName.value)
     }
+    
+    // 手动下载
+    handleDownload(result, name)
     
     ElMessage.success('导出成功')
     dialogVisible.value = false
@@ -137,6 +143,29 @@ const confirm = async () => {
     ElMessage.error('导出失败: ' + error.message)
   } finally {
     loading.value = false
+  }
+}
+
+// 手动处理下载
+const handleDownload = (data, fileName) => {
+  const a = document.createElement('a')
+  // 如果是 Blob 对象，创建 URL
+  if (data instanceof Blob) {
+      a.href = URL.createObjectURL(data)
+  } else {
+      // 否则认为是 Data URL 或其他 URL
+      a.href = data
+  }
+  
+  a.download = fileName
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  
+  // 释放 URL 对象
+  if (data instanceof Blob) {
+      URL.revokeObjectURL(a.href)
   }
 }
 

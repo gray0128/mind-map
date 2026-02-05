@@ -35,7 +35,8 @@
       :mindMap="mindMap"
     ></NodeNoteContentShow>
     <NodeImgPreview v-if="mindMap" :mindMap="mindMap"></NodeImgPreview>
-    <SidebarTrigger v-if="!isZenMode"></SidebarTrigger>
+    <!-- <SidebarTrigger v-if="!isZenMode"></SidebarTrigger> -->
+    <RightToolbar v-if="!isZenMode && mindMap" :mindMap="mindMap"></RightToolbar>
     <Search v-if="mindMap" :mindMap="mindMap"></Search>
     <NodeIconSidebar v-if="mindMap" :mindMap="mindMap"></NodeIconSidebar>
     <NodeIconToolbar v-if="mindMap" :mindMap="mindMap"></NodeIconToolbar>
@@ -104,7 +105,8 @@ import NodeNoteContentShow from './NodeNoteContentShow.vue'
 import { getData, getConfig, storeData } from '@/api'
 import Navigator from './Navigator.vue'
 import NodeImgPreview from './NodeImgPreview.vue'
-import SidebarTrigger from './SidebarTrigger.vue'
+// import SidebarTrigger from './SidebarTrigger.vue'
+import RightToolbar from './RightToolbar.vue'
 import { mapState } from 'vuex'
 import icon from '@/config/icon'
 import Vue from 'vue'
@@ -171,7 +173,8 @@ export default {
     NodeNoteContentShow,
     Navigator,
     NodeImgPreview,
-    SidebarTrigger,
+    // SidebarTrigger,
+    RightToolbar,
     Search,
     NodeIconSidebar,
     NodeIconToolbar,
@@ -344,18 +347,18 @@ export default {
                   canvas.width = targetWidth
                   canvas.height = targetHeight
                   const ctx = canvas.getContext('2d')
-                  
+
                   // 白色背景
                   ctx.fillStyle = '#fff'
                   ctx.fillRect(0, 0, targetWidth, targetHeight)
-                  
+
                   // 保持比例缩放
                   const scale = Math.min(targetWidth / img.width, targetHeight / img.height)
                   const w = img.width * scale
                   const h = img.height * scale
                   const x = (targetWidth - w) / 2
                   const y = (targetHeight - h) / 2
-                  
+
                   ctx.drawImage(img, x, y, w, h)
                   resolve(canvas.toDataURL('image/png'))
                }
@@ -762,9 +765,11 @@ export default {
   .mindMapContainer {
     position: absolute;
     left: 0px;
-    top: 0px;
-    width: 100%;
-    height: 100%;
+    top: 56px;
+    width: calc(100% - 56px);
+    height: calc(100% - 56px);
+    right: 56px;
+    bottom: 0;
   }
 }
 </style>

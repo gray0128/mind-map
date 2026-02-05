@@ -5,6 +5,7 @@
     width="500px"
     align-center
     destroy-on-close
+    append-to-body
   >
     <div class="import-content">
       <el-upload

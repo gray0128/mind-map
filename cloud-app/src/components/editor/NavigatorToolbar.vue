@@ -1,5 +1,5 @@
 <template>
-  <div class="navigator-container" :class="{ 'is-dark': isDark }">
+  <div class="navigator-container" :class="{ 'is-dark': isDark }" :style="{ right: sidebarOpen ? '340px' : '20px' }">
     <div class="item">
       <el-tooltip effect="dark" content="回到中心" placement="top">
         <el-button link :icon="Aim" class="btn" @click="backToRoot" />
@@ -15,7 +15,7 @@
         <el-button link :icon="Compass" class="btn" @click="toggleMiniMap" />
       </el-tooltip>
     </div>
-    <div class="item">
+    <div class="item" v-if="props.showEditToggle">
       <el-tooltip effect="dark" :content="isReadonly ? '切换为编辑模式' : '切换为只读模式'" placement="top">
         <el-button link :icon="isReadonly ? View : Edit" class="btn" @click="toggleReadonly" />
       </el-tooltip>
@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, defineProps } from 'vue'
 import { useMindMapStore } from '@/store/mindmap'
 import bus from '@/utils/bus'
 import Scale from './Scale.vue'
@@ -46,11 +46,19 @@ import {
 } from '@element-plus/icons-vue'
 import screenfull from 'screenfull'
 
+const props = defineProps({
+  showEditToggle: {
+    type: Boolean,
+    default: true
+  }
+})
+
 const mindMapStore = useMindMapStore()
 const mindMap = computed(() => mindMapStore.mindMap)
 const isDark = computed(() => mindMapStore.localConfig.isDark)
 const isReadonly = computed(() => mindMapStore.isReadonly)
 const isFullscreen = computed(() => mindMapStore.isFullscreen)
+const sidebarOpen = computed(() => !!mindMapStore.activeSidebar)
 
 const openMiniMap = ref(false)
 
@@ -100,6 +108,7 @@ const toggleDark = () => {
   display: flex;
   align-items: center;
   z-index: 1000;
+  transition: right 0.3s ease;
 }
 
 .navigator-container.is-dark {

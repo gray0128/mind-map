@@ -242,9 +242,9 @@
           <div class="row-item">
              <span class="name">显示位置</span>
              <el-radio-group v-model="styleConfig.textAlign" size="small" @change="(val) => updateOuterFrame('textAlign', val)">
-                <el-radio-button label="left">左</el-radio-button>
-                <el-radio-button label="center">中</el-radio-button>
-                <el-radio-button label="right">右</el-radio-button>
+                <el-radio-button value="left">左</el-radio-button>
+                <el-radio-button value="center">中</el-radio-button>
+                <el-radio-button value="right">右</el-radio-button>
              </el-radio-group>
           </div>
        </div>

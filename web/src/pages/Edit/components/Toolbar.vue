@@ -1,30 +1,7 @@
 <template>
   <div class="toolbarContainer" :class="{ isDark: isDark }">
-    <div class="toolbar" ref="toolbarRef">
-      <!-- 节点操作 -->
-      <div class="toolbarBlock">
-        <ToolbarNodeBtnList :list="horizontalList"></ToolbarNodeBtnList>
-        <!-- 更多 -->
-        <el-popover
-          v-model="popoverShow"
-          placement="bottom-end"
-          width="120"
-          trigger="hover"
-          v-if="showMoreBtn"
-          :style="{ marginLeft: horizontalList.length > 0 ? '20px' : 0 }"
-        >
-          <ToolbarNodeBtnList
-            dir="v"
-            :list="verticalList"
-            @click.native="popoverShow = false"
-          ></ToolbarNodeBtnList>
-          <div slot="reference" class="toolbarBtn">
-            <span class="icon iconfont icongongshi"></span>
-            <span class="text">{{ $t('toolbar.more') }}</span>
-          </div>
-        </el-popover>
-      </div>
-      <!-- 导出 -->
+    <div class="toolbar">
+      <!-- 文件操作区 -->
       <div class="toolbarBlock">
         <div class="toolbarBtn" @click="openDirectory" v-if="!isMobile">
           <span class="icon iconfont icondakai"></span>
@@ -60,14 +37,11 @@
           <span class="icon iconfont icondaoru"></span>
           <span class="text">{{ $t('toolbar.import') }}</span>
         </div>
-        <div
-          class="toolbarBtn"
-          @click="$bus.$emit('showExport')"
-          style="margin-right: 0;"
-        >
+        <div class="toolbarBtn" @click="$bus.$emit('showExport')">
           <span class="icon iconfont iconexport"></span>
           <span class="text">{{ $t('toolbar.export') }}</span>
         </div>
+
         <!-- 本地文件树 -->
         <div
           class="fileTreeBox"
@@ -154,31 +128,9 @@ import { mapState } from 'vuex'
 import { Notification } from 'element-ui'
 import exampleData from 'simple-mind-map/example/exampleData'
 import { getData } from '../../../api'
-import ToolbarNodeBtnList from './ToolbarNodeBtnList.vue'
-import { throttle, isMobile } from 'simple-mind-map/src/utils/index'
+import { isMobile } from 'simple-mind-map/src/utils/index'
 
-// 工具栏
 let fileHandle = null
-const defaultBtnList = [
-  'back',
-  'forward',
-  'painter',
-  'siblingNode',
-  'childNode',
-  'deleteNode',
-  'image',
-  'icon',
-  'link',
-  'note',
-  'tag',
-  'summary',
-  'associativeLine',
-  'formula',
-  // 'attachment',
-  'outerFrame',
-  'annotation',
-  'ai'
-]
 
 export default {
   components: {
@@ -188,16 +140,11 @@ export default {
     NodeNote,
     NodeTag,
     Export,
-    Import,
-    ToolbarNodeBtnList
+    Import
   },
   data() {
     return {
       isMobile: isMobile(),
-      horizontalList: [],
-      verticalList: [],
-      showMoreBtn: true,
-      popoverShow: false,
       fileTreeProps: {
         label: 'name',
         children: 'children',
@@ -212,36 +159,13 @@ export default {
   computed: {
     ...mapState({
       isDark: state => state.localConfig.isDark,
-      isHandleLocalFile: state => state.isHandleLocalFile,
-      openNodeRichText: state => state.localConfig.openNodeRichText,
-      enableAi: state => state.localConfig.enableAi
-    }),
-
-    btnLit() {
-      let res = [...defaultBtnList]
-      if (!this.openNodeRichText) {
-        res = res.filter(item => {
-          return item !== 'formula'
-        })
-      }
-      if (!this.enableAi) {
-        res = res.filter(item => {
-          return item !== 'ai'
-        })
-      }
-      return res
-    }
+      isHandleLocalFile: state => state.isHandleLocalFile
+    })
   },
   watch: {
     isHandleLocalFile(val) {
       if (!val) {
         Notification.closeAll()
-      }
-    },
-    btnLit: {
-      deep: true,
-      handler() {
-        this.computeToolbarShow()
       }
     }
   },
@@ -249,49 +173,13 @@ export default {
     this.$bus.$on('write_local_file', this.onWriteLocalFile)
   },
   mounted() {
-    this.computeToolbarShow()
-    this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
-    window.addEventListener('resize', this.computeToolbarShowThrottle)
-    this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
     window.addEventListener('beforeunload', this.onUnload)
-    this.$bus.$on('node_note_dblclick', this.onNodeNoteDblclick)
   },
   beforeDestroy() {
     this.$bus.$off('write_local_file', this.onWriteLocalFile)
-    window.removeEventListener('resize', this.computeToolbarShowThrottle)
-    this.$bus.$off('lang_change', this.computeToolbarShowThrottle)
     window.removeEventListener('beforeunload', this.onUnload)
-    this.$bus.$off('node_note_dblclick', this.onNodeNoteDblclick)
   },
   methods: {
-    // 计算工具按钮如何显示
-    computeToolbarShow() {
-      if (!this.$refs.toolbarRef) return
-      const windowWidth = window.innerWidth - 40
-      const all = [...this.btnLit]
-      let index = 1
-      const loopCheck = () => {
-        if (index > all.length) return done()
-        this.horizontalList = all.slice(0, index)
-        this.$nextTick(() => {
-          const width = this.$refs.toolbarRef.getBoundingClientRect().width
-          if (width < windowWidth) {
-            index++
-            loopCheck()
-          } else if (index > 0 && width > windowWidth) {
-            index--
-            this.horizontalList = all.slice(0, index)
-            done()
-          }
-        })
-      }
-      const done = () => {
-        this.verticalList = all.slice(index)
-        this.showMoreBtn = this.verticalList.length > 0
-      }
-      loopCheck()
-    },
-
     // 监听本地文件读写
     onWriteLocalFile(content) {
       clearTimeout(this.timer)
@@ -524,11 +412,6 @@ export default {
         }
         this.$message.warning(this.$t('toolbar.notSupportTip'))
       }
-    },
-
-    onNodeNoteDblclick(node, e) {
-      e.stopPropagation()
-      this.$bus.$emit('showNodeNote', node)
     }
   }
 }
@@ -536,231 +419,134 @@ export default {
 
 <style lang="less" scoped>
 .toolbarContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 56px;
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
   &.isDark {
-    .toolbar {
-      color: hsla(0, 0%, 100%, 0.9);
-      .toolbarBlock {
-        background-color: #262a2e;
+    background-color: #262a2e;
+    border-bottom-color: #363b3f;
 
-        .fileTreeBox {
-          background-color: #262a2e;
-
-          /deep/ .el-tree {
-            background-color: #262a2e;
-
-            &.el-tree--highlight-current {
-              .el-tree-node.is-current > .el-tree-node__content {
-                background-color: hsla(0, 0%, 100%, 0.05) !important;
-              }
-            }
-
-            .el-tree-node:focus > .el-tree-node__content {
-              background-color: hsla(0, 0%, 100%, 0.05) !important;
-            }
-
-            .el-tree-node__content:hover,
-            .el-upload-list__item:hover {
-              background-color: hsla(0, 0%, 100%, 0.02) !important;
-            }
-          }
-
-          .fileTreeWrap {
-            .customTreeNode {
-              .treeNodeInfo {
-                color: #fff;
-              }
-
-              .treeNodeBtnList {
-                .el-button {
-                  padding: 7px 5px;
-                }
-              }
-            }
-          }
-        }
+    .toolbarBtn {
+      .icon {
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid transparent;
       }
-
-      .toolbarBtn {
+      .text {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      &:hover {
         .icon {
-          background: transparent;
-          border-color: transparent;
-        }
-
-        &:hover {
-          &:not(.disabled) {
-            .icon {
-              background: hsla(0, 0%, 100%, 0.05);
-            }
-          }
-        }
-
-        &.disabled {
-          color: #54595f;
+          background: rgba(255, 255, 255, 0.1) !important;
         }
       }
     }
   }
+
   .toolbar {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 20px;
-    width: max-content;
+    width: 100%;
     display: flex;
-    font-size: 12px;
-    font-family: PingFangSC-Regular, PingFang SC;
-    font-weight: 400;
-    color: rgba(26, 26, 26, 0.8);
-    z-index: 2;
+    align-items: center;
 
     .toolbarBlock {
       display: flex;
-      background-color: #fff;
-      padding: 10px 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      margin-right: 20px;
-      flex-shrink: 0;
-      position: relative;
+      align-items: center;
+    }
+  }
 
-      &:last-of-type {
-        margin-right: 0;
+  .toolbarBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-right: 24px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      color: #333;
+    }
+
+    .text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1;
+    }
+  }
+
+  .fileTreeBox {
+    position: absolute;
+    left: 20px;
+    top: 60px;
+    width: 300px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    padding: 10px;
+    z-index: 200;
+    border: 1px solid #ebeef5;
+
+    &.expand {
+      height: auto;
+      min-height: 300px;
+    }
+
+    .fileTreeToolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 10px;
+
+      .fileTreeName {
+        font-weight: bold;
+        color: #333;
+        font-size: 14px;
       }
 
-      .fileTreeBox {
-        position: absolute;
-        left: 0;
-        top: 68px;
-        width: 100%;
-        height: 30px;
-        background-color: #fff;
-        padding: 12px 5px;
-        padding-top: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        border-radius: 5px;
-        min-width: 200px;
-        box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
-
-        &.expand {
-          height: 300px;
-
-          .fileTreeWrap {
-            visibility: visible;
-          }
-        }
-
-        .fileTreeToolbar {
-          width: 100%;
-          height: 30px;
-          flex-shrink: 0;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          border-bottom: 1px solid #e9e9e9;
-          margin-bottom: 12px;
-          padding-left: 12px;
-
-          .fileTreeName {
-          }
-
-          .fileTreeActionList {
-            .btn {
-              font-size: 18px;
-              margin-left: 12px;
-              cursor: pointer;
-            }
-          }
-        }
-
-        .fileTreeWrap {
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          visibility: hidden;
-
-          .customTreeNode {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            padding-right: 5px;
-
-            .treeNodeInfo {
-              display: flex;
-              align-items: center;
-
-              .treeNodeIcon {
-                margin-right: 5px;
-                opacity: 0.7;
-              }
-
-              .treeNodeName {
-                max-width: 200px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-              }
-            }
-
-            .treeNodeBtnList {
-              display: flex;
-              align-items: center;
-            }
+      .fileTreeActionList {
+        .btn {
+          cursor: pointer;
+          margin-left: 10px;
+          color: #909399;
+          &:hover {
+            color: #409eff;
           }
         }
       }
     }
 
-    .toolbarBtn {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      cursor: pointer;
-      margin-right: 20px;
-
-      &:last-of-type {
-        margin-right: 0;
-      }
-
-      &:hover {
-        &:not(.disabled) {
-          .icon {
-            background: #f5f5f5;
-          }
-        }
-      }
-
-      &.active {
-        .icon {
-          background: #f5f5f5;
-        }
-      }
-
-      &.disabled {
-        color: #bcbcbc;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
-
-      .icon {
-        display: flex;
-        height: 26px;
-        background: #fff;
-        border-radius: 4px;
-        border: 1px solid #e9e9e9;
-        justify-content: center;
-        flex-direction: column;
-        text-align: center;
-        padding: 0 5px;
-      }
-
-      .text {
-        margin-top: 3px;
-      }
+    .fileTreeWrap {
+      max-height: 400px;
+      overflow-y: auto;
     }
   }
 }

@@ -119,10 +119,10 @@
                   v-model="style.textDecoration"
                   @change="updateStyle('textDecoration')"
                 >
-                  <el-radio-button label="none">无</el-radio-button>
-                  <el-radio-button label="underline">下划线</el-radio-button>
-                  <el-radio-button label="line-through">中划线</el-radio-button>
-                  <el-radio-button label="overline">上划线</el-radio-button>
+                  <el-radio-button value="none">无</el-radio-button>
+                  <el-radio-button value="underline">下划线</el-radio-button>
+                  <el-radio-button value="line-through">中划线</el-radio-button>
+                  <el-radio-button value="overline">上划线</el-radio-button>
                 </el-radio-group>
               </el-popover>
             </el-tooltip>
@@ -465,10 +465,10 @@
               size="small"
               @change="updateStyle('imgPlacement')"
             >
-              <el-radio-button label="top">上</el-radio-button>
-              <el-radio-button label="bottom">下</el-radio-button>
-              <el-radio-button label="left">左</el-radio-button>
-              <el-radio-button label="right">右</el-radio-button>
+              <el-radio-button value="top">上</el-radio-button>
+              <el-radio-button value="bottom">下</el-radio-button>
+              <el-radio-button value="left">左</el-radio-button>
+              <el-radio-button value="right">右</el-radio-button>
             </el-radio-group>
           </div>
         </div>
@@ -482,8 +482,8 @@
               size="small"
               @change="updateStyle('tagPlacement')"
             >
-              <el-radio-button label="right">右</el-radio-button>
-              <el-radio-button label="bottom">下</el-radio-button>
+              <el-radio-button value="right">右</el-radio-button>
+              <el-radio-button value="bottom">下</el-radio-button>
             </el-radio-group>
           </div>
         </div>
@@ -496,7 +496,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue'
 import { useMindMapStore } from '@/store/mindmap'
 import bus from '@/utils/bus'
 import Sidebar from './Sidebar.vue'
@@ -517,7 +517,7 @@ import {
 const mindMapStore = useMindMapStore()
 
 // 激活的节点
-const activeNodes = ref([])
+const activeNodes = shallowRef([])
 
 // 样式状态
 const style = reactive({
