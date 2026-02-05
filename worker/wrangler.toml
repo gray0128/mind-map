@@ -3,13 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
 [vars]
-FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = "https://mind-map-front.bobocai.win"
 
 # 开发环境使用本地 D1
 [[d1_databases]]
 binding = "DB"
 database_name = "mindmap-db"
-database_id = "local"
+database_id = "056a741e-7882-436d-999f-c48800b7041c"
 
 # R2 存储
 [[r2_buckets]]

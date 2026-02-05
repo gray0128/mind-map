@@ -9,39 +9,53 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Structure
 
-- **simple-mind-map/**: The core framework-agnostic JavaScript library for mind maps.
-  - `src/`: Source code for the library.
-  - `plugins/`: Plugin implementations (the library is plugin-based).
-- **web/**: The Vue 2.x based web application/client.
-  - `src/`: Vue application source code.
-- **dist/**: Build output directory.
+- **cloud-app/**: 云端版前端应用
+  - `src/`: Vue 3 应用源码
+  - `src/api/`: API 封装
+  - `src/views/`: 页面组件
+  - `src/store/`: Pinia 状态管理
+  - `src/router/`: 路由配置
+- **worker/**: 云端版后端服务
+  - `src/`: Cloudflare Workers 源码
+  - `schema.sql`: 数据库 Schema
+  - `wrangler.toml`: Worker 配置
 
 ## Common Commands
 
-### Web Application (`web/` directory)
+### Frontend (`cloud-app/` directory)
 
 - **Install dependencies**: `npm install`
-- **Start development server**: `npm run serve`
-- **Build for production**: `npm run build` (Output includes `dist/` in root)
-- **Lint code**: `npm run lint`
-- **Build Core Library**: `npm run buildLibrary` (Updates `simple-mind-map/dist` using `esbuild`)
+- **Start development server**: `npm run dev`
+- **Build for production**: `npm run build`
+- **Preview production build**: `npm run preview`
 
-### Core Library (`simple-mind-map/` directory)
+### Backend (`worker/` directory)
 
 - **Install dependencies**: `npm install`
-- **Lint code**: `npm run lint`
-- **Generate Types**: `npm run types` (Generates `.d.ts` files from JSDoc)
-- **Start WebSocket Server**: `npm run wsServe` (For local collaboration testing)
+- **Start development server**: `npm run dev`
+- **Deploy to Cloudflare**: `npm run deploy`
+- **Initialize local database**: `npx wrangler d1 execute mindmap-db --local --file=schema.sql`
 
 ## Architecture
 
-- **Core Library**: The `simple-mind-map` package is a vanilla JavaScript library dependent on `svg.js`. It uses a plugin architecture where features like RichText, Dragging, and Export are implemented as plugins.
-- **Web Client**: The `web` directory contains a Vue 2 application that consumes `simple-mind-map`. It uses `ElementUI` for the UI components and `Vuex` for state management.
-- **Plugins**: Most functionality is modular. If adding a new feature to the mind map core, consider if it should be a core function or a separate plugin.
+- **Frontend**: Vue 3 + Vite + Pinia，使用 Element Plus 作为 UI 组件库，依赖 npm 包 `simple-mind-map`
+- **Backend**: Cloudflare Workers + Hono 框架，使用 D1 (SQLite) 数据库和 R2 对象存储
+- **Authentication**: GitHub OAuth 登录
+
+## Environment Variables
+
+后端需要在 `worker/.dev.vars` 中配置：
+
+```
+GITHUB_CLIENT_ID=your_client_id
+GITHUB_CLIENT_SECRET=your_client_secret
+JWT_SECRET=your_jwt_secret
+FRONTEND_URL=http://localhost:5173
+```
 
 ## Code Style
 
-- **Linting**: ESLint is used in both projects (`.eslintrc.js` or `package.json` config).
-- **Formatting**: Prettier is used for formatting.
-- **Language**: The codebase uses JavaScript. TypeScript definitions are generated but the source is JS.
+- **Frontend**: Vue 3 Composition API, JavaScript, Less
+- **Backend**: TypeScript
+- **Formatting**: Prettier
 - **Communication**: As per user instructions, always communicate in Chinese.
