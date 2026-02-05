@@ -25,7 +25,8 @@ const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 
 function handleLogin() {
-  window.location.href = '/api/auth/github'
+  const apiHost = import.meta.env.VITE_API_HOST || ''
+  window.location.href = `${apiHost}/api/auth/github`
 }
 
 function goToFiles() {
