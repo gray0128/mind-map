@@ -1,21 +1,23 @@
 <template>
-  <div
-    class="node-img-placement-toolbar"
-    ref="toolbarRef"
-    :style="{ left: style.left, top: style.top }"
-    @click.stop
-    v-show="showToolbar"
-  >
+  <Teleport to="body">
     <div
-      class="item"
-      v-for="item in imgPlacementList"
-      :key="item"
-      :class="{ selected: imgPlacement === item }"
-      @click="updateImgPlacement(item)"
+      class="node-img-placement-toolbar"
+      ref="toolbarRef"
+      :style="{ left: style.left, top: style.top }"
+      @click.stop
+      v-show="showToolbar"
     >
-      <el-icon :class="getIconClass(item)"><Top /></el-icon>
+      <div
+        class="item"
+        v-for="item in imgPlacementList"
+        :key="item"
+        :class="{ selected: imgPlacement === item }"
+        @click="updateImgPlacement(item)"
+      >
+        <el-icon :class="getIconClass(item)"><Top /></el-icon>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>

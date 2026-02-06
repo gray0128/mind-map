@@ -1,11 +1,12 @@
 <template>
-  <div
-    class="contextmenu-container list-box"
-    v-if="isShow"
-    ref="contextmenuRef"
-    :style="{ left: left + 'px', top: top + 'px' }"
-    :class="{ 'is-dark': isDark }"
-  >
+  <Teleport to="body">
+    <div
+      class="contextmenu-container list-box"
+      v-if="isShow"
+      ref="contextmenuRef"
+      :style="{ left: left + 'px', top: top + 'px' }"
+      :class="{ 'is-dark': isDark }"
+    >
     <template v-if="type === 'node'">
       <div
         class="item"
@@ -164,6 +165,7 @@
       </div>
     </template>
   </div>
+  </Teleport>
 </template>
 
 <script setup>

@@ -1,14 +1,16 @@
 <template>
-    <div class="nodeIconToolbar" ref="nodeIconToolbarRef" :style="style" @click.stop v-show="showNodeIconToolbar">
-        <div class="iconListBox">
-            <div class="icon" v-for="icon in iconList" :key="icon.name" v-html="getHtml(icon.icon)" :class="{
-                selected: nodeIconList.includes(iconType + '_' + icon.name)
-            }" @click="setIcon(icon.name)"></div>
+    <Teleport to="body">
+        <div class="nodeIconToolbar" ref="nodeIconToolbarRef" :style="style" @click.stop v-show="showNodeIconToolbar">
+            <div class="iconListBox">
+                <div class="icon" v-for="icon in iconList" :key="icon.name" v-html="getHtml(icon.icon)" :class="{
+                    selected: nodeIconList.includes(iconType + '_' + icon.name)
+                }" @click="setIcon(icon.name)"></div>
+            </div>
+            <div class="btnBox">
+                <span class="btn" @click="deleteIcon">删除</span>
+            </div>
         </div>
-        <div class="btnBox">
-            <span class="btn" @click="deleteIcon">删除</span>
-        </div>
-    </div>
+    </Teleport>
 </template>
   
 <script setup>
@@ -110,7 +112,7 @@ const onScale = () => {
 }
 
 const onNodeActive = (payload) => {
-    if (!payload) {
+    if (!payload || !payload.node) {
         close()
         return
     }

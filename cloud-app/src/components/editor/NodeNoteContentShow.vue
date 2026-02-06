@@ -1,20 +1,22 @@
 <template>
-  <div
-    class="note-content-viewer custom-scrollbar"
-    ref="viewerRef"
-    :style="{
-      left: left + 'px',
-      top: top + 'px',
-      visibility: show ? 'visible' : 'hidden'
-    }"
-    @click.stop
-    @mousedown.stop
-    @mousemove.stop
-    @mouseup.stop
-    @wheel.stop
-  >
-    <div class="note-content-inner custom-scrollbar" ref="contentInnerRef"></div>
-  </div>
+  <Teleport to="body">
+    <div
+      class="note-content-viewer custom-scrollbar"
+      ref="viewerRef"
+      :style="{
+        left: left + 'px',
+        top: top + 'px',
+        visibility: show ? 'visible' : 'hidden'
+      }"
+      @click.stop
+      @mousedown.stop
+      @mousemove.stop
+      @mouseup.stop
+      @wheel.stop
+    >
+      <div class="note-content-inner custom-scrollbar" ref="contentInnerRef"></div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>

@@ -1,12 +1,13 @@
 <template>
-  <div
-    class="node-tag-style-container"
-    ref="elRef"
-    :style="{ left: position.left, top: position.top }"
-    v-show="show"
-    :class="{ 'is-dark': isDark }"
-    @click.stop
-  >
+  <Teleport to="body">
+    <div
+      class="node-tag-style-container"
+      ref="elRef"
+      :style="{ left: position.left, top: position.top }"
+      v-show="show"
+      :class="{ 'is-dark': isDark }"
+      @click.stop
+    >
     <div class="row">
       <el-input
         v-model="text"
@@ -25,6 +26,7 @@
       <el-color-picker v-model="fill" size="small" @change="updateTagFill" />
     </div>
   </div>
+  </Teleport>
 </template>
 
 <script setup>

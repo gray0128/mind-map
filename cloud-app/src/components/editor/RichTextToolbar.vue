@@ -1,12 +1,13 @@
 <template>
-  <div
-    class="rich-text-toolbar"
-    ref="toolbarRef"
-    :style="style"
-    :class="{ 'is-dark': isDark }"
-    v-show="show"
-    @click.stop
-  >
+  <Teleport to="body">
+    <div
+      class="rich-text-toolbar"
+      ref="toolbarRef"
+      :style="style"
+      :class="{ 'is-dark': isDark }"
+      v-show="show"
+      @click.stop
+    >
     <el-tooltip content="加粗" placement="top">
       <div class="btn" :class="{ active: formatInfo.bold }" @click="toggleBold">
         <i class="iconfont iconzitijiacu"></i>
@@ -108,6 +109,7 @@
       </div>
     </el-tooltip>
   </div>
+  </Teleport>
 </template>
 
 <script setup>
