@@ -64,8 +64,9 @@ FRONTEND_URL=http://localhost:5173
 
 ### 生产环境地址
 
-- **前端**: https://mind-map-front.bobocai.win
+- **前端**: https://mind-map.bobocai.win
 - **后端**: https://mindmap-worker.amd2.workers.dev
+- **Cloudflare Pages 项目名**: mind-map
 
 ### 部署流程
 
@@ -82,12 +83,12 @@ npm install
 npm run build
 
 # 方式一：命令行部署到 Cloudflare Pages
-wrangler pages deploy dist --project-name=mind-map-front --commit-dirty=true
+wrangler pages deploy dist --project-name=mind-map --commit-dirty=true
 
 # 方式二：手动部署
 # 1. 登录 Cloudflare Dashboard (https://dash.cloudflare.com)
 # 2. 进入 Workers & Pages > Pages
-# 3. 选择 mind-map-front 项目
+# 3. 选择 mind-map 项目
 # 4. 点击 "Create deployment"
 # 5. 上传 dist/ 目录下的所有文件
 ```
@@ -123,7 +124,7 @@ wrangler deploy
 
 # 4. 部署前端
 cd ../cloud-app
-wrangler pages deploy dist --project-name=mind-map-front --commit-dirty=true
+wrangler pages deploy dist --project-name=mind-map --commit-dirty=true
 ```
 
 ### 部署注意事项
