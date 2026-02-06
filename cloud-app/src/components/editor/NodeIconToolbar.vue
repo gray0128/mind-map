@@ -169,13 +169,14 @@ onBeforeUnmount(() => {
     z-index: 2000;
     width: 210px;
     max-height: 220px;
-    background: #fff;
+    background-color: #fff;
     border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 8px;
     box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.06);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    opacity: 1;
 }
 
 .iconListBox {
