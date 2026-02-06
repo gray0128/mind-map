@@ -110,6 +110,10 @@ const onScale = () => {
 }
 
 const onNodeActive = (payload) => {
+    if (!payload) {
+        close()
+        return
+    }
     const activeNode = payload.node
     if (activeNode === node.value) {
         return
