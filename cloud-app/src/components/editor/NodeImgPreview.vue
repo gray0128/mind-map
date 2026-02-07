@@ -31,6 +31,13 @@ const onNodeImgDblclick = (node, e) => {
     if (url && typeof url === 'object' && url.url) {
         url = url.url
     }
+    // 检查是否是 base64 存储的 key
+    if (url && typeof url === 'string' && url.startsWith('smm_img_key_')) {
+        const imgMap = mindMap.value.getData().imgMap
+        if (imgMap && imgMap[url]) {
+            url = imgMap[url]
+        }
+    }
     // 如果是相对路径，拼接 API 域名
     if (url && typeof url === 'string' && url.startsWith('/')) {
         const apiHost = import.meta.env.VITE_API_HOST || ''

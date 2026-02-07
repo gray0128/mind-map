@@ -82,7 +82,16 @@ const handleShowNodeImage = () => {
       if (typeof image === 'object' && image.url) {
         image = image.url
       }
-      if (/^https?:\/\//.test(image) || /^data:image/.test(image)) {
+
+      // 处理 base64 存储的图片
+      if (typeof image === 'string' && image.startsWith('smm_img_key_')) {
+         const imgMap = mindMapStore.mindMap.getData().imgMap
+         if (imgMap && imgMap[image]) {
+           image = imgMap[image]
+           img.value = image
+           imgUrl.value = ''
+         }
+      } else if (/^https?:\/\//.test(image) || /^data:image/.test(image)) {
         if (/^data:image/.test(image)) {
             img.value = image
         } else {
