@@ -26,7 +26,7 @@ const onNodeImgDblclick = (node, e) => {
         e.stopPropagation()
         e.preventDefault()
     }
-    const url = node.getImageUrl()
+    const url = node.getData('image')
     if (url) {
         images.value = [url]
         show.value = true
