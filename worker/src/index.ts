@@ -21,6 +21,13 @@ app.use('*', cors({
 // 健康检查
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
+// 获取系统配置
+app.get('/api/config', (c) => {
+    return c.json({
+        timezone: c.env.TIMEZONE || 'Asia/Shanghai'
+    })
+})
+
 // GitHub OAuth 发起
 app.get('/api/auth/github', (c) => {
     const clientId = c.env.GITHUB_CLIENT_ID

@@ -32,6 +32,12 @@ api.interceptors.response.use(
     }
 )
 
+// 系统配置 API
+export const configApi = {
+    // 获取配置
+    get: () => api.get('/config')
+}
+
 // 认证 API
 export const authApi = {
     // 获取当前用户信息

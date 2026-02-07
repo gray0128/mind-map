@@ -123,7 +123,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user.js'
-import { fileApi } from '@/api'
+import { fileApi, configApi } from '@/api'
 import {
   Search, Upload, EditPen, Link, Share, Delete, Lock
 } from '@element-plus/icons-vue'
@@ -137,6 +137,7 @@ const loading = ref(true)
 const searchQuery = ref('')
 const sortBy = ref('updated_at')
 const shareStatus = ref('')
+const timezone = ref('Asia/Shanghai')
 const apiHost = import.meta.env.VITE_API_HOST || ''
 
 const filteredFiles = computed(() => {
@@ -166,6 +167,14 @@ const filteredFiles = computed(() => {
 })
 
 onMounted(async () => {
+  try {
+    const config = await configApi.get()
+    if (config.timezone) {
+      timezone.value = config.timezone
+    }
+  } catch (error) {
+    console.error('Load config error:', error)
+  }
   await loadFiles()
 })
 
@@ -272,7 +281,11 @@ async function handleLogout() {
 }
 
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleString('zh-CN')
+  try {
+    return new Date(dateStr).toLocaleString('zh-CN', { timeZone: timezone.value })
+  } catch (e) {
+    return new Date(dateStr).toLocaleString('zh-CN')
+  }
 }
 </script>
 

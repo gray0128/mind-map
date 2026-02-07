@@ -4,6 +4,7 @@ compatibility_date = "2024-01-01"
 
 [vars]
 FRONTEND_URL = "https://mind-map-front.bobocai.win"
+TIMEZONE = "Asia/Shanghai"
 
 # 开发环境使用本地 D1
 [[d1_databases]]
