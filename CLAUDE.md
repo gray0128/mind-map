@@ -254,3 +254,32 @@ const apiHost = import.meta.env.VITE_API_HOST || ''
 ```bash
 wrangler pages deploy dist --project-name=mind-map --commit-message="Deploy update"
 ```
+
+### 5. 图片大图预览无法加载（Base64 图片存储插件相关）
+
+**问题描述**：思维导图中的图片缩略图可以正常展示，但双击查看大图时，图片无法正常加载（显示 "FAILED"）。
+
+**现象分析**：
+- 缩略图正常显示（由 simple-mind-map 库内部渲染）
+- 大图预览失败，请求 URL 类似 `https://xxx/edit/smm_img_key_xxxx`（`smm_img_key_` 没有被转换为真实图片）
+
+**根本原因**：
+`NodeImgPreview.vue` 中获取 `imgMap` 的路径错误。`NodeBase64ImageStorage` 插件将 base64 图片存储在 `renderTree.data.imgMap` 中，而不是 `getData()` 返回值的顶层。
+
+**为什么缩略图没问题**：
+缩略图由 simple-mind-map 库内部渲染，库内部已正确处理 `smm_img_key_` 到 base64 的转换。而 `NodeImgPreview.vue` 是在库外部编写的代码，需要手动从正确路径获取 `imgMap`。
+
+**解决方案**：
+
+```javascript
+// 错误的获取方式
+const imgMap = mindMap.value.getData().imgMap  // undefined
+
+// 正确的获取方式
+const renderTree = mindMap.value.renderer.renderTree
+const imgMap = renderTree?.data?.imgMap  // 正确获取到 imgMap
+```
+
+**修改文件**：`cloud-app/src/components/editor/NodeImgPreview.vue`
+
+**关键点**：在库外部处理 `smm_img_key_` 格式的图片时，必须通过 `mindMap.renderer.renderTree.data.imgMap` 获取图片映射表。

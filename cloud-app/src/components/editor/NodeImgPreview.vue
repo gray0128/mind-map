@@ -9,8 +9,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useMindMapStore } from '@/store/mindmap'
+import { useUserStore } from '@/store/user'
 
 const mindMapStore = useMindMapStore()
+const userStore = useUserStore()
 const mindMap = computed(() => mindMapStore.mindMap)
 
 const show = ref(false)
@@ -33,15 +35,17 @@ const onNodeImgDblclick = (node, e) => {
     }
     // 检查是否是 base64 存储的 key
     if (url && typeof url === 'string' && url.startsWith('smm_img_key_')) {
-        const imgMap = mindMap.value.getData().imgMap
+        // imgMap 存储在根节点的 data 中
+        const renderTree = mindMap.value.renderer.renderTree
+        const imgMap = renderTree?.data?.imgMap
         if (imgMap && imgMap[url]) {
             url = imgMap[url]
         }
     }
-    // 如果是相对路径，拼接 API 域名
+    // 如果是相对路径，拼接 API 域名和认证 token
     if (url && typeof url === 'string' && url.startsWith('/')) {
         const apiHost = import.meta.env.VITE_API_HOST || ''
-        url = apiHost + url
+        url = `${apiHost}${url}?token=${userStore.token}`
     }
 
     if (url && typeof url === 'string') {
