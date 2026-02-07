@@ -26,8 +26,18 @@ const onNodeImgDblclick = (node, e) => {
         e.stopPropagation()
         e.preventDefault()
     }
-    const url = node.getData('image')
-    if (url) {
+    let url = node.getData('image')
+    // 如果是对象，尝试获取 url 属性
+    if (url && typeof url === 'object' && url.url) {
+        url = url.url
+    }
+    // 如果是相对路径，拼接 API 域名
+    if (url && typeof url === 'string' && url.startsWith('/')) {
+        const apiHost = import.meta.env.VITE_API_HOST || ''
+        url = apiHost + url
+    }
+
+    if (url && typeof url === 'string') {
         images.value = [url]
         show.value = true
     }

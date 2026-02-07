@@ -77,8 +77,11 @@ const handleShowNodeImage = () => {
   reset()
   if (activeNodes.value.length > 0) {
     const firstNode = activeNodes.value[0]
-    const image = firstNode.getData('image') || ''
+    let image = firstNode.getData('image') || ''
     if (image) {
+      if (typeof image === 'object' && image.url) {
+        image = image.url
+      }
       if (/^https?:\/\//.test(image) || /^data:image/.test(image)) {
         if (/^data:image/.test(image)) {
             img.value = image
