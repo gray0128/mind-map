@@ -60,8 +60,8 @@
           <el-card shadow="hover" class="file-card" v-for="file in filteredFiles" :key="file.id" @click="openFile(file.id)">
             <div class="card-content">
               <div class="card-thumbnail">
-                <el-image 
-                  :src="file.thumbnail_url ? `${file.thumbnail_url}?token=${userStore.token}` : '/placeholder.svg'" 
+                <el-image
+                  :src="file.thumbnail_url ? `${apiHost}${file.thumbnail_url}?token=${userStore.token}` : '/placeholder.svg'"
                   :alt="file.name"
                   fit="contain"
                   style="width: 100%; height: 140px;"
@@ -78,10 +78,11 @@
                   <el-icon><EditPen /></el-icon>
                 </el-button>
                 <el-button link @click="toggleShare(file)" :title="file.is_shared ? '关闭分享' : '开启分享'">
-                  <el-icon>{{ file.is_shared ? 'Link' : 'Lock' }}</el-icon>
+                  <el-icon v-if="file.is_shared"><Share /></el-icon>
+                  <el-icon v-else><Lock /></el-icon>
                 </el-button>
                 <el-button link v-if="file.is_shared" @click="copyShareLink(file)" title="复制链接">
-                  <el-icon><DocumentCopy /></el-icon>
+                  <el-icon><Link /></el-icon>
                 </el-button>
                 <el-button link type="danger" @click="deleteFile(file)" title="删除">
                   <el-icon><Delete /></el-icon>
@@ -117,8 +118,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user.js'
 import { fileApi } from '@/api'
-import { 
-  Search, Upload, EditPen, DocumentCopy, Delete
+import {
+  Search, Upload, EditPen, Link, Share, Delete, Lock
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -129,6 +130,7 @@ const files = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const sortBy = ref('updated_at')
+const apiHost = import.meta.env.VITE_API_HOST || ''
 
 const filteredFiles = computed(() => {
   let result = [...files.value]

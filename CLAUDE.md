@@ -217,3 +217,39 @@ wrangler pages deploy dist --project-name=mind-map --commit-dirty=true
       iconList: [..._nodeIconList, ...icon]
     })
     ```
+
+### 3. 列表页缩略图无法显示（Thumbnail 404）
+
+**问题描述**：思维导图列表页的缩略图在本地开发环境显示正常，但部署到生产环境后无法显示（404 Not Found）。
+
+**根本原因**：
+后端返回的缩略图 URL 是相对路径（如 `/api/files/xxx/thumbnail`）。
+- **本地环境**：Vite 配置了 proxy，`/api` 请求会被正确转发到后端。
+- **生产环境**：前端部署在 Cloudflare Pages，后端在 Cloudflare Workers。前端直接访问相对路径 `/api/...` 会请求 Pages 域名下的资源，而该路径不存在。
+
+**解决方案**：
+在前端渲染图片 URL 时，显式拼接后端 API 域名（通过环境变量 `VITE_API_HOST` 配置）。
+
+```javascript
+// 修改前
+:src="file.thumbnail_url ? `${file.thumbnail_url}?token=${userStore.token}` : '/placeholder.svg'"
+
+// 修改后
+const apiHost = import.meta.env.VITE_API_HOST || ''
+:src="file.thumbnail_url ? `${apiHost}${file.thumbnail_url}?token=${userStore.token}` : '/placeholder.svg'"
+```
+
+### 4. Wrangler 部署报错 "Invalid commit message"
+
+**问题描述**：执行 `wrangler pages deploy` 时报错：
+`[ERROR] A request to the Cloudflare API failed. Invalid commit message, it must be a valid UTF-8 string.`
+
+**根本原因**：
+本地 Git 环境的提交信息包含特殊字符或编码问题，或者 workspace 状态导致 Wrangler 无法正确读取最新的 commit message。
+
+**解决方案**：
+在部署命令中显式指定 commit message，覆盖自动读取的值。
+
+```bash
+wrangler pages deploy dist --project-name=mind-map --commit-message="Deploy update"
+```
