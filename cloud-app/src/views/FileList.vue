@@ -362,9 +362,15 @@ function formatDate(dateStr) {
   border: 2px dashed #dcdfe6 !important;
   background-color: #fafafa !important;
   display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+
+.create-card :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
 }
 
 .create-content {
