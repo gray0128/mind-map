@@ -153,3 +153,67 @@ wrangler pages deploy dist --project-name=mind-map --commit-dirty=true
    - 部署完成后访问前端地址验证功能是否正常
    - 检查后端 API 是否可访问
    - 测试 GitHub OAuth 登录流程
+
+## 常见问题与修复经验
+
+### 1. 工具栏按钮点击后弹窗/侧边栏不显示（透明）
+
+**问题描述**：点击工具栏上的按钮（如图标、样式等）后，预期的弹窗或侧边栏不出现，看起来像是透明的。
+
+**根本原因**：`Toolbar.vue` 中调用 `openSidebar()` 时传入的侧边栏名称与实际侧边栏组件定义的 `name` 属性不匹配。
+
+**示例**：
+- 错误：`openSidebar('nodeIconSidebar')` 
+- 正确：`openSidebar('icon')`（需与 `NodeIconSidebar.vue` 中的 `name="icon"` 一致）
+
+**解决方案**：
+1. 检查 `Sidebar.vue` 基础组件的 `name` prop
+2. 确保 `Toolbar.vue` 中 `openSidebar()` 的参数与目标侧边栏的 `name` 一致
+3. 侧边栏名称映射关系：
+   - `icon` → NodeIconSidebar（图标与贴纸）
+   - `style` → StyleSidebar（节点样式）
+   - `theme` → ThemeSidebar（主题）
+   - `structure` → Structure（结构）
+   - `baseStyle` → BaseStyle（基础样式）
+
+### 2. 节点图标显示异常（Icons Display Issues）
+
+**问题描述**：
+1.  **Sidebar显示问题**：部分图标（如 "Colorful Marker Icons"）在侧边栏无法显示，显示为破碎的图片。
+2.  **SVG尺寸问题**：修复Sidebar显示后，SVG图标（如 "Avatar", "Flag"）变得巨大，撑破容器。
+3.  **Canvas显示问题**：侧边栏显示正常后，拖拽到画布上的节点图标仍然不显示。
+
+**根本原因**：
+1.  **Sidebar**：原逻辑统一使用 `v-html` 渲染图标，但 "Colorful Marker Icons" 是 base64 格式的 PNG 图片，`v-html` 无法正确解析（它期望的是 SVG 字符串）。
+2.  **SVG CSS**：Vue 的 Scoped CSS 无法穿透应用到 `v-html` 注入的 SVG 内容上，导致 SVG 缺少宽高限制而按默认尺寸渲染。
+3.  **Canvas**：`simple-mind-map` 实例在初始化时未注册自定义图标列表，导致画布渲染器在渲染节点时找不到对应的图标数据。
+
+**解决方案**：
+
+**1. 修复 Sidebar (`NodeIconSidebar.vue`)**
+-   **分流渲染**：使用 `isSvg` 函数判断图标类型。SVG 继续使用 `v-html`，非 SVG (base64 PNG) 使用 `<img>` 标签。
+    ```vue
+    <div v-if="isSvg(icon.icon)" v-html="icon.icon" class="svg-icon"></div>
+    <img v-else :src="icon.icon" alt="" />
+    ```
+-   **CSS 穿透**：使用 `:deep()` 选择器强制给注入的 SVG 应用样式。
+    ```css
+    .svg-icon :deep(svg) {
+      width: 100%;
+      height: 100%;
+    }
+    ```
+-   **图片适配**：给 `<img>` 添加 `object-fit: contain` 防止变形。
+
+**2. 修复 Canvas (`Editor.vue`)**
+-   **注册图标**：在初始化 `MindMap` 实例时，显式传入 `iconList` 选项。
+-   **合并配置**：需要同时导入默认图标（`simple-mind-map/src/svg/icons`）和自定义图标（`@/config/icon`）进行合并。
+    ```javascript
+    import { nodeIconList as _nodeIconList } from 'simple-mind-map/src/svg/icons'
+    import icon from '@/config/icon'
+
+    new MindMap({
+      // ...
+      iconList: [..._nodeIconList, ...icon]
+    })
+    ```

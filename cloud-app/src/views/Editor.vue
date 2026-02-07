@@ -158,6 +158,8 @@ import { fileApi } from '@/api'
 import { 
   ArrowLeft, Upload, Check, Close
 } from '@element-plus/icons-vue'
+import { nodeIconList as _nodeIconList } from 'simple-mind-map/src/svg/icons'
+import icon from '@/config/icon'
 
 // 配置常量
 const AUTOSAVE_DELAY = 30000 // 30秒自动保存
@@ -278,7 +280,8 @@ async function initEditor() {
     theme: initialData.theme ? initialData.theme.template : 'default',
     themeConfig: initialData.theme ? initialData.theme.config : {},
     viewData: initialData.view,
-    enableAutoEnterTextEditWhenKeydown: true
+    enableAutoEnterTextEditWhenKeydown: true,
+    iconList: [..._nodeIconList, ...icon]
   })
 
   mindMap.value.on('data_change', handleDataChange)

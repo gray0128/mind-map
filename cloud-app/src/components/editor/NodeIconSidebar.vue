@@ -15,12 +15,14 @@
                 class="icon"
                 v-for="icon in item.list"
                 :key="icon.name"
-                v-html="getHtml(icon.icon)"
                 :class="{
                   selected: iconList.includes(item.type + '_' + icon.name)
                 }"
                 @click="setIcon(item.type, icon.name)"
-              ></div>
+              >
+                <div v-if="isSvg(icon.icon)" v-html="icon.icon" class="svg-icon"></div>
+                <img v-else :src="icon.icon" alt="" />
+              </div>
             </div>
           </div>
         </div>
@@ -104,6 +106,10 @@ onBeforeUnmount(() => {
   bus.off('node_active', handleNodeActive)
   bus.off('showNodeIcon', handleShowNodeIcon)
 })
+
+const isSvg = (icon) => {
+  return /^<svg/.test(icon)
+}
 
 const getHtml = (icon) => {
   return /^<svg/.test(icon) ? icon : `<img src="${icon}" />`
@@ -193,9 +199,18 @@ const setImage = (img) => {
 }
 
 .iconBox .item .list .icon img,
-.iconBox .item .list .icon svg {
+.iconBox .item .list .icon .svg-icon {
   width: 100%;
   height: 100%;
+}
+
+.iconBox .item .list .icon .svg-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+}
+
+.iconBox .item .list .icon img {
+  object-fit: contain;
 }
 
 .iconBox .item .list .icon.selected::after {

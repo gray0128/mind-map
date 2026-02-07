@@ -62,7 +62,7 @@
         </div>
         <span class="text">关联线</span>
       </div>
-      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="openSidebar('nodeIconSidebar')">
+      <div class="toolbarBtn" :class="{ disabled: activeNodes.length <= 0 }" @click="openSidebar('icon')">
         <div class="icon">
           <span class="iconfont iconxiaolian"></span>
         </div>
