@@ -41,6 +41,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Frontend**: Vue 3 + Vite + Pinia，使用 Element Plus 作为 UI 组件库，依赖 npm 包 `simple-mind-map`
 - **Backend**: Cloudflare Workers + Hono 框架，使用 D1 (SQLite) 数据库和 R2 对象存储
 - **Authentication**: GitHub OAuth 登录
+- **Data Persistence**: 采用"云端同步(30s) + 本地备份(1s)"的双重保障机制。本地备份存储在 `localStorage` (`MINDMAP_BACKUP_{ID}`)，用于异常退出后的数据恢复。
 
 ## Environment Variables
 

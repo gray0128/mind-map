@@ -212,6 +212,7 @@ const fileName = ref('')
 const originalFileName = ref('') // 用于取消重命名
 const saveStatus = ref('')
 const saveTimer = ref(null)
+const localSaveTimer = ref(null)
 const loading = ref(false)
 const loadingText = ref('')
 const isFileNameEditing = ref(false)
@@ -295,7 +296,10 @@ async function initEditor() {
   
   // 注册到 store
   mindMapStore.setMindMap(mindMap.value)
-  
+
+  // 检查本地备份
+  checkLocalBackup(currentId || 'new')
+
   loading.value = false
 }
 
@@ -319,61 +323,90 @@ function onBackForward(index, len) {
   bus.emit('back_forward', index, len)
 }
 
+// 生成默认文件名：思维导图_YYYYMMDD_HHmmss
+function generateDefaultFileName() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hour = String(now.getHours()).padStart(2, '0')
+  const minute = String(now.getMinutes()).padStart(2, '0')
+  const second = String(now.getSeconds()).padStart(2, '0')
+  return `思维导图_${year}${month}${day}_${hour}${minute}${second}`
+}
+
 function handleDataChange() {
   saveStatus.value = '未保存'
   if (saveTimer.value) clearTimeout(saveTimer.value)
-  saveTimer.value = setTimeout(saveContent, AUTOSAVE_DELAY)
+  saveTimer.value = setTimeout(() => saveContent(true), AUTOSAVE_DELAY)
+
+  // 本地秒级备份
+  if (localSaveTimer.value) clearTimeout(localSaveTimer.value)
+  localSaveTimer.value = setTimeout(localSave, 1000)
 }
 
-async function saveContent() {
+async function saveContent(isAutoSave = false) {
   const currentId = route.params.id
   saveStatus.value = '保存中...'
-  
+
   try {
     const data = mindMap.value.getData(true)
     const thumbnail = await generateThumbnail()
 
     // 如果是新建文件
     if (!currentId || currentId === 'new') {
-        // 弹窗让用户输入文件名
         let inputName = fileName.value
-        if (fileName.value === '新建思维导图') {
+
+        // 自动保存且未修改文件名 -> 静默生成
+        if (isAutoSave && fileName.value === '新建思维导图') {
+            inputName = generateDefaultFileName()
+        }
+        // 手动保存且未修改文件名 -> 弹窗确认
+        else if (fileName.value === '新建思维导图') {
             try {
+                const defaultName = generateDefaultFileName()
                 const { value } = await ElMessageBox.prompt('请输入文件名称', '保存思维导图', {
                     confirmButtonText: '保存',
                     cancelButtonText: '取消',
-                    inputValue: '新建思维导图',
+                    inputValue: defaultName,
                     inputPlaceholder: '请输入文件名称',
                     inputPattern: /^.{1,50}$/,
                     inputErrorMessage: '文件名称不能为空且不超过50个字符'
                 })
-                inputName = value || '新建思维导图'
+                inputName = value || defaultName
             } catch {
                 // 用户取消
                 saveStatus.value = '未保存'
                 return
             }
         }
-        
+
         fileName.value = inputName
         originalFileName.value = inputName
-        
+
         // 创建文件
         const res = await fileApi.create({
             name: inputName,
             content: data
         })
-        
+
         // 更新路由到新 ID，不刷新页面
         await router.replace(`/edit/${res.id}`)
         saveStatus.value = '已创建'
-        ElMessage.success('文件已创建')
-        
+
+        if (!isAutoSave) {
+            ElMessage.success('文件已创建')
+        }
+
         // 创建接口不支持传缩略图，所以创建完立刻再保存一次以更新缩略图
         await fileApi.saveContent(res.id, {
             ...data,
             thumbnail: thumbnail
         })
+
+        // 清除本地备份
+        localStorage.removeItem(`MINDMAP_BACKUP_${currentId || 'new'}`)
+
         saveStatus.value = '已保存'
         return
     }
@@ -383,25 +416,30 @@ async function saveContent() {
       ...data,
       thumbnail: thumbnail
     })
-    
+
     // 如果文件名有变化，更新文件名
     if (fileName.value !== originalFileName.value) {
       await fileApi.update(currentId, { name: fileName.value })
       originalFileName.value = fileName.value
     }
-    
+
+    // 清除本地备份
+    localStorage.removeItem(`MINDMAP_BACKUP_${currentId}`)
+
     saveStatus.value = '已保存'
   } catch (e) {
     console.error('保存失败', e)
     saveStatus.value = '保存失败'
-    ElMessage.error('保存失败')
+    if (!isAutoSave) {
+        ElMessage.error('保存失败')
+    }
   }
 }
 
 // 手动保存
 async function handleManualSave() {
   if (saveTimer.value) clearTimeout(saveTimer.value)
-  await saveContent()
+  await saveContent(false)
   ElMessage.success('保存成功')
 }
 
@@ -487,6 +525,65 @@ function endFileNameEdit() {
 function cancelFileNameEdit() {
   fileName.value = originalFileName.value
   isFileNameEditing.value = false
+}
+
+// 本地备份逻辑
+function localSave() {
+  try {
+    const currentId = route.params.id || 'new'
+    const data = mindMap.value.getData(true)
+    const backupKey = `MINDMAP_BACKUP_${currentId}`
+    const backupData = {
+      content: data,
+      timestamp: Date.now(),
+      synced: false
+    }
+    localStorage.setItem(backupKey, JSON.stringify(backupData))
+  } catch (e) {
+    console.warn('本地备份失败 (可能是存储空间不足)', e)
+  }
+}
+
+// 检查本地备份
+async function checkLocalBackup(id) {
+  try {
+    const backupKey = `MINDMAP_BACKUP_${id}`
+    const backupStr = localStorage.getItem(backupKey)
+    if (!backupStr) return
+
+    const backup = JSON.parse(backupStr)
+    // 只有未同步的备份才提示恢复
+    if (backup.synced === false) {
+      const date = new Date(backup.timestamp)
+      const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
+
+      try {
+        await ElMessageBox.confirm(
+          `检测到有未保存的本地备份（时间：${timeStr}），是否恢复？`,
+          '恢复未保存的内容',
+          {
+            confirmButtonText: '恢复',
+            cancelButtonText: '放弃',
+            type: 'warning',
+            closeOnClickModal: false,
+            closeOnPressEscape: false
+          }
+        )
+        // 用户确认恢复
+        mindMap.value.setData(backup.content)
+        ElMessage.success('已恢复本地备份，正在同步到云端...')
+
+        // 恢复后立即触发一次云端保存
+        saveContent(true)
+      } catch {
+        // 用户取消，删除备份
+        localStorage.removeItem(backupKey)
+        ElMessage.info('已放弃本地备份')
+      }
+    }
+  } catch (e) {
+    console.error('检查本地备份失败', e)
+  }
 }
 </script>
 
