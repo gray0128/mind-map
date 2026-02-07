@@ -29,7 +29,13 @@
             <el-option label="按创建时间" value="created_at"></el-option>
             <el-option label="按名称" value="name"></el-option>
           </el-select>
-          
+
+          <el-select v-model="shareStatus" placeholder="分享状态" class="share-select" style="width: 150px; margin-right: 10px;" clearable>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="已开启分享" value="shared"></el-option>
+            <el-option label="未开启分享" value="not_shared"></el-option>
+          </el-select>
+
           <el-upload 
             class="upload-wrapper"
             action="" 
@@ -78,8 +84,8 @@
                   <el-icon><EditPen /></el-icon>
                 </el-button>
                 <el-button link @click="toggleShare(file)" :title="file.is_shared ? '关闭分享' : '开启分享'">
-                  <el-icon v-if="file.is_shared"><Share /></el-icon>
-                  <el-icon v-else><Lock /></el-icon>
+                  <el-icon v-if="file.is_shared"><Lock /></el-icon>
+                  <el-icon v-else><Share /></el-icon>
                 </el-button>
                 <el-button link v-if="file.is_shared" @click="copyShareLink(file)" title="复制链接">
                   <el-icon><Link /></el-icon>
@@ -130,16 +136,25 @@ const files = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const sortBy = ref('updated_at')
+const shareStatus = ref('')
 const apiHost = import.meta.env.VITE_API_HOST || ''
 
 const filteredFiles = computed(() => {
   let result = [...files.value]
-  
+
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(f => f.name.toLowerCase().includes(query))
   }
-  
+
+  if (shareStatus.value) {
+    if (shareStatus.value === 'shared') {
+      result = result.filter(f => f.is_shared)
+    } else if (shareStatus.value === 'not_shared') {
+      result = result.filter(f => !f.is_shared)
+    }
+  }
+
   result.sort((a, b) => {
     if (sortBy.value === 'name') {
       return a.name.localeCompare(b.name)
@@ -430,7 +445,11 @@ function formatDate(dateStr) {
   .sort-select {
     width: 100% !important;
   }
-  
+
+  .share-select {
+    width: 100% !important;
+  }
+
   .file-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 15px;
