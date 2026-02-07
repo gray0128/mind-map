@@ -48,9 +48,19 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+let isInitialized = false
+
+router.beforeEach(async (to, from, next) => {
     console.log(`Router beforeEach: from ${from.path} to ${to.path}`)
     const userStore = useUserStore()
+
+    // 首次加载时，如果有 token 但没有用户信息，先获取用户信息
+    if (!isInitialized && userStore.token && !userStore.user) {
+        isInitialized = true
+        console.log('Initializing user info...')
+        await userStore.fetchUser()
+        console.log('User info initialized:', userStore.user ? 'success' : 'failed')
+    }
 
     if (to.meta.requiresAuth && !userStore.isLoggedIn) {
         console.log('Requires auth, redirecting to Home')
