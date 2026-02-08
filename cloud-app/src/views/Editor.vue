@@ -162,7 +162,7 @@ import { nodeIconList as _nodeIconList } from 'simple-mind-map/src/svg/icons'
 import icon from '@/config/icon'
 
 // 配置常量
-const AUTOSAVE_DELAY = 30000 // 30秒自动保存
+const AUTOSAVE_DELAY = 5000 // 5秒自动保存
 
 // 默认数据
 const defaultData = {
@@ -614,7 +614,7 @@ async function checkLocalBackup(id) {
       // 用户确认恢复，执行恢复逻辑
       if (userConfirmed) {
         try {
-          mindMap.value.setData(backup.content)
+          mindMap.value.setData(backup.content.root || backup.content)
           ElMessage.success('已恢复本地备份，正在同步到云端...')
           // 恢复后立即触发一次云端保存
           saveContent(true)
