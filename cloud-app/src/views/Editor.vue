@@ -215,6 +215,7 @@ const saveTimer = ref(null)
 const localSaveTimer = ref(null)
 const loading = ref(false)
 const loadingText = ref('')
+const isInitialized = ref(false) // 初始化完成标记，用于忽略初始化阶段的 data_change 事件
 const isFileNameEditing = ref(false)
 const fileNameInputRef = ref(null)
 
@@ -286,7 +287,7 @@ async function initEditor() {
   })
 
   mindMap.value.on('data_change', handleDataChange)
-  mindMap.value.on('view_data_change', handleDataChange)
+  mindMap.value.on('view_data_change', handleViewChange)
   mindMap.value.on('node_active', onNodeActive)
   mindMap.value.on('selection_change', onSelectionChange)
   mindMap.value.on('back_forward', onBackForward)
@@ -301,6 +302,12 @@ async function initEditor() {
   checkLocalBackup(currentId || 'new')
 
   loading.value = false
+
+  // 延迟设置初始化完成，确保初始化触发的事件已处理
+  // 使用 setTimeout 而非 nextTick，因为 simple-mind-map 可能在多个渲染周期后才完成所有初始化事件
+  setTimeout(() => {
+    isInitialized.value = true
+  }, 500)
 }
 
 // 节点激活事件
@@ -336,13 +343,26 @@ function generateDefaultFileName() {
 }
 
 function handleDataChange() {
+  // 初始化阶段忽略数据变化事件，避免误报"未保存"
+  if (!isInitialized.value) return
+
   saveStatus.value = '未保存'
   if (saveTimer.value) clearTimeout(saveTimer.value)
   saveTimer.value = setTimeout(() => saveContent(true), AUTOSAVE_DELAY)
 
-  // 本地秒级备份
+  // 本地秒级备份 - 数据变化
   if (localSaveTimer.value) clearTimeout(localSaveTimer.value)
-  localSaveTimer.value = setTimeout(localSave, 1000)
+  localSaveTimer.value = setTimeout(() => localSave(true), 1000)
+}
+
+// 视图变化处理（拖动画布、缩放等）
+// 视图变化不触发"未保存"提示，但仍需要备份视图状态
+function handleViewChange() {
+  if (!isInitialized.value) return
+
+  // 仅触发本地备份，不改变保存状态 - 视图变化
+  if (localSaveTimer.value) clearTimeout(localSaveTimer.value)
+  localSaveTimer.value = setTimeout(() => localSave(false), 1000)
 }
 
 async function saveContent(isAutoSave = false) {
@@ -528,15 +548,28 @@ function cancelFileNameEdit() {
 }
 
 // 本地备份逻辑
-function localSave() {
+// isDataChange: true 表示数据变化（节点内容修改），false 表示仅视图变化（拖动画布、缩放）
+function localSave(isDataChange = true) {
   try {
     const currentId = route.params.id || 'new'
     const data = mindMap.value.getData(true)
     const backupKey = `MINDMAP_BACKUP_${currentId}`
+
+    // 视图变化时，保留原有的 synced 状态
+    let synced = !isDataChange
+    if (!isDataChange) {
+      const existingBackup = localStorage.getItem(backupKey)
+      if (existingBackup) {
+        try {
+          synced = JSON.parse(existingBackup).synced !== false
+        } catch {}
+      }
+    }
+
     const backupData = {
       content: data,
       timestamp: Date.now(),
-      synced: false
+      synced: isDataChange ? false : synced
     }
     localStorage.setItem(backupKey, JSON.stringify(backupData))
   } catch (e) {
@@ -557,6 +590,7 @@ async function checkLocalBackup(id) {
       const date = new Date(backup.timestamp)
       const timeStr = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
 
+      let userConfirmed = false
       try {
         await ElMessageBox.confirm(
           `检测到有未保存的本地备份（时间：${timeStr}），是否恢复？`,
@@ -569,16 +603,25 @@ async function checkLocalBackup(id) {
             closeOnPressEscape: false
           }
         )
-        // 用户确认恢复
-        mindMap.value.setData(backup.content)
-        ElMessage.success('已恢复本地备份，正在同步到云端...')
-
-        // 恢复后立即触发一次云端保存
-        saveContent(true)
+        userConfirmed = true
       } catch {
-        // 用户取消，删除备份
+        // 用户点击"放弃"
         localStorage.removeItem(backupKey)
         ElMessage.info('已放弃本地备份')
+        return
+      }
+
+      // 用户确认恢复，执行恢复逻辑
+      if (userConfirmed) {
+        try {
+          mindMap.value.setData(backup.content)
+          ElMessage.success('已恢复本地备份，正在同步到云端...')
+          // 恢复后立即触发一次云端保存
+          saveContent(true)
+        } catch (e) {
+          console.error('恢复本地备份失败', e)
+          ElMessage.error('恢复本地备份失败')
+        }
       }
     }
   } catch (e) {
