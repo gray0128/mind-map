@@ -282,7 +282,13 @@ async function handleLogout() {
 
 function formatDate(dateStr) {
   try {
-    return new Date(dateStr).toLocaleString('zh-CN', { timeZone: timezone.value })
+    // SQLite CURRENT_TIMESTAMP 返回的是 UTC 时间但没有时区标识
+    // 需要添加 Z 后缀让 JavaScript 正确识别为 UTC 时间
+    let normalizedDateStr = dateStr
+    if (dateStr && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+      normalizedDateStr = dateStr.replace(' ', 'T') + 'Z'
+    }
+    return new Date(normalizedDateStr).toLocaleString('zh-CN', { timeZone: timezone.value })
   } catch (e) {
     return new Date(dateStr).toLocaleString('zh-CN')
   }
