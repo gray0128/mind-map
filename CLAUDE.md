@@ -283,3 +283,61 @@ const imgMap = renderTree?.data?.imgMap  // 正确获取到 imgMap
 **修改文件**：`cloud-app/src/components/editor/NodeImgPreview.vue`
 
 **关键点**：在库外部处理 `smm_img_key_` 格式的图片时，必须通过 `mindMap.renderer.renderTree.data.imgMap` 获取图片映射表。
+
+### 6. 视图变化误触发"未保存的本地备份"提示
+
+**问题描述**：仅拖动画布（未修改节点内容）后关闭浏览器，再次打开时也会提示"检测到未保存的本地备份"，造成用户困惑。
+
+**根本原因**：
+`Editor.vue` 中 `handleViewChange` 和 `handleDataChange` 都调用同一个 `localSave()` 函数，而该函数始终将备份标记为 `synced: false`。
+
+```javascript
+// 问题代码
+function localSave() {
+  const backupData = {
+    content: data,
+    timestamp: Date.now(),
+    synced: false  // 始终标记为未同步，导致视图变化也触发恢复提示
+  }
+}
+```
+
+**解决方案**：
+区分"数据变化"和"视图变化"，只有真正的数据变化才标记为 `synced: false`。
+
+```javascript
+// 修改后的 localSave 函数
+function localSave(isDataChange = true) {
+  const backupKey = `MINDMAP_BACKUP_${currentId}`
+
+  // 视图变化时，保留原有的 synced 状态
+  let synced = !isDataChange
+  if (!isDataChange) {
+    const existingBackup = localStorage.getItem(backupKey)
+    if (existingBackup) {
+      try {
+        synced = JSON.parse(existingBackup).synced !== false
+      } catch {}
+    }
+  }
+
+  const backupData = {
+    content: data,
+    timestamp: Date.now(),
+    synced: isDataChange ? false : synced  // 数据变化才标记未同步
+  }
+}
+
+// 调用方式
+function handleDataChange() {
+  localSaveTimer.value = setTimeout(() => localSave(true), 1000)  // 数据变化
+}
+
+function handleViewChange() {
+  localSaveTimer.value = setTimeout(() => localSave(false), 1000)  // 视图变化
+}
+```
+
+**修改文件**：`cloud-app/src/views/Editor.vue`
+
+**关键点**：本地备份的 `synced` 字段应区分数据变化和视图变化，视图变化应保留原有同步状态，避免误导用户。
