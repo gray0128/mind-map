@@ -4,8 +4,8 @@ import { Env } from './types'
 import { authMiddleware } from './middleware/auth'
 import filesRoutes from './routes/files'
 import shareRoutes from './routes/share'
-import thumbnailRoutes from './routes/thumbnail'
 import * as jose from 'jose'
+import { JWT_EXPIRATION } from './config/constants'
 import { User } from './types'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -124,7 +124,7 @@ app.get('/api/auth/callback', async (c) => {
         const secret = new TextEncoder().encode(c.env.JWT_SECRET)
         const token = await new jose.SignJWT({ sub: user.id })
             .setProtectedHeader({ alg: 'HS256' })
-            .setExpirationTime('7d')
+            .setExpirationTime(JWT_EXPIRATION)
             .sign(secret)
 
         // 重定向到前端，携带 token
@@ -161,7 +161,6 @@ app.post('/api/auth/logout', (c) => {
 
 // 文件管理路由
 app.route('/api/files', filesRoutes)
-app.route('/api/files', thumbnailRoutes)
 
 // 404 处理
 app.notFound((c) => c.json({ error: 'Not found' }, 404))

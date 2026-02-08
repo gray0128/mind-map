@@ -4,7 +4,7 @@
  */
 
 // 全屏事件检测
-const getOnfullscreEnevt = () => {
+const getOnfullscreenEvent = () => {
     if (document.documentElement.requestFullScreen) {
         return 'onfullscreenchange'
     } else if (document.documentElement.webkitRequestFullScreen) {
@@ -16,7 +16,7 @@ const getOnfullscreEnevt = () => {
     }
 }
 
-export const fullscrrenEvent = getOnfullscreEnevt()
+export const fullscreenEvent = getOnfullscreenEvent()
 
 // 全屏
 export const fullScreen = element => {
@@ -63,22 +63,30 @@ export const fileToBuffer = file => {
     })
 }
 
-// 复制文本到剪贴板
-export const copy = text => {
-    const input = document.createElement('textarea')
-    input.innerHTML = text
-    document.body.appendChild(input)
-    input.select()
-    document.execCommand('copy')
-    document.body.removeChild(input)
+// 复制文本到剪贴板（优先使用现代 API，降级使用 execCommand）
+export const copyToClipboard = async (text) => {
+    if (navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(text)
+            return true
+        } catch (e) {
+            // 降级处理
+        }
+    }
+    // Fallback
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.cssText = 'position:fixed;opacity:0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return success
 }
 
-// 复制文本到剪贴板（现代API）
-export const setDataToClipboard = data => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(data)
-    }
-}
+// 保留旧函数名（向后兼容）
+export const copy = copyToClipboard
+export const setDataToClipboard = copyToClipboard
 
 // 复制图片到剪贴板
 export const setImgToClipboard = img => {
