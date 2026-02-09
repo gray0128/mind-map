@@ -255,10 +255,11 @@ async function initEditor() {
       } else if (res && res.content) {
          initialData = typeof res.content === 'string' ? JSON.parse(res.content) : res.content
       }
-      
+
       const fileInfo = await fileApi.getDetail(currentId)
       fileName.value = fileInfo.name
       originalFileName.value = fileInfo.name
+      mindMapStore.setFileName(fileInfo.name)
       saveStatus.value = '已加载'
     } catch (e) {
       console.error('加载文件失败', e)
@@ -268,6 +269,7 @@ async function initEditor() {
   } else {
     fileName.value = '新建思维导图'
     originalFileName.value = '新建思维导图'
+    mindMapStore.setFileName('新建思维导图')
   }
 
   // 如果实例已存在，先销毁（防止路由切换组件复用问题）
@@ -404,6 +406,7 @@ async function saveContent(isAutoSave = false) {
 
         fileName.value = inputName
         originalFileName.value = inputName
+        mindMapStore.setFileName(inputName)
 
         // 创建文件
         const res = await fileApi.create({
@@ -442,6 +445,7 @@ async function saveContent(isAutoSave = false) {
     if (fileName.value !== originalFileName.value) {
       await fileApi.update(currentId, { name: fileName.value })
       originalFileName.value = fileName.value
+      mindMapStore.setFileName(fileName.value)
     }
 
     // 清除本地备份

@@ -21,6 +21,9 @@ export const useMindMapStore = defineStore('mindmap', () => {
     // 当前缩放比例
     const scale = ref(100)
 
+    // 当前文件名称
+    const currentFileName = ref('思维导图')
+
     // 本地配置
     const localConfig = ref({
         isZenMode: false,
@@ -61,6 +64,11 @@ export const useMindMapStore = defineStore('mindmap', () => {
         scale.value = value
     }
 
+    // 设置当前文件名称
+    function setFileName(name) {
+        currentFileName.value = name
+    }
+
     // 更新本地配置
     function setLocalConfig(config) {
         localConfig.value = { ...localConfig.value, ...config }
@@ -85,6 +93,7 @@ export const useMindMapStore = defineStore('mindmap', () => {
         isReadonly,
         isFullscreen,
         scale,
+        currentFileName,
         localConfig,
         setMindMap,
         getMindMap,
@@ -92,6 +101,7 @@ export const useMindMapStore = defineStore('mindmap', () => {
         setReadonly,
         setFullscreen,
         setScale,
+        setFileName,
         setLocalConfig,
         loadLocalConfig
     }

@@ -100,6 +100,8 @@ const currentTypeDesc = computed(() => {
 // 暴露方法
 const show = () => {
   dialogVisible.value = true
+  // 使用 store 中的文件名，如果没有则使用默认值
+  fileName.value = mindMapStore.currentFileName || '思维导图'
 }
 
 const cancel = () => {
