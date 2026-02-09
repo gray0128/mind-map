@@ -371,7 +371,8 @@ async function saveContent(isAutoSave = false) {
 
   try {
     const data = mindMap.value.getData(true)
-    const thumbnail = await generateThumbnail()
+    // 自动保存时不生成缩略图，避免阻塞UI
+    const thumbnail = isAutoSave ? undefined : await generateThumbnail()
 
     // 如果是新建文件
     if (!currentId || currentId === 'new') {
