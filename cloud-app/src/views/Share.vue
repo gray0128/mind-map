@@ -58,6 +58,8 @@ import { ElMessage } from 'element-plus'
 import { shareApi } from '@/api'
 import { DocumentCopy, Download, ArrowLeft } from '@element-plus/icons-vue'
 import MindMap from 'simple-mind-map'
+import { nodeIconList as _nodeIconList } from 'simple-mind-map/src/svg/icons'
+import icon from '@/config/icon'
 import { useMindMapStore } from '@/store/mindmap'
 import MiniMap from 'simple-mind-map/src/plugins/MiniMap.js'
 import Watermark from 'simple-mind-map/src/plugins/Watermark.js'
@@ -166,7 +168,8 @@ async function initMindMap() {
     theme: fileContent.value.theme ? fileContent.value.theme.template : 'default',
     themeConfig: fileContent.value.theme ? fileContent.value.theme.config : {},
     viewData: fileContent.value.view,
-    readonly: true // 只读模式
+    readonly: true, // 只读模式
+    iconList: [..._nodeIconList, ...icon]
   })
   
   // 注册到 store
